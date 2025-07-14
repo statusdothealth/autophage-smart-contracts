@@ -10,7 +10,8 @@ const colors = {
   yellow: "\x1b[33m",
   blue: "\x1b[34m",
   magenta: "\x1b[35m",
-  cyan: "\x1b[36m"
+  cyan: "\x1b[36m",
+  red: "\x1b[31m"
 };
 
 function log(message, color = "reset") {
@@ -48,11 +49,15 @@ async function deployContracts() {
   );
   await verificationEngine.waitForDeployment();
   
+  // Deploy catalyst token for governance
+  const catalystToken = await MockERC20.deploy();
+  await catalystToken.waitForDeployment();
+  
   // Deploy GovernanceContract
   const GovernanceContract = await hre.ethers.getContractFactory("GovernanceContract");
   const governance = await GovernanceContract.deploy(
     await autophageToken.getAddress(),
-    await autophageToken.getAddress()
+    await catalystToken.getAddress()
   );
   await governance.waitForDeployment();
   
@@ -73,6 +78,7 @@ async function deployContracts() {
     contracts: {
       AutophageToken: await autophageToken.getAddress(),
       MockUSDC: await mockUSDC.getAddress(),
+      CatalystToken: await catalystToken.getAddress(),
       ReservoirContract: await reservoir.getAddress(),
       VerificationEngine: await verificationEngine.getAddress(),
       GovernanceContract: await governance.getAddress()
@@ -118,6 +124,14 @@ async function getContracts(deployment) {
     deployment.contracts.MockUSDC
   );
   
+  // Add catalyst token if it exists
+  if (deployment.contracts.CatalystToken) {
+    contracts.catalystToken = await hre.ethers.getContractAt(
+      "MockERC20",
+      deployment.contracts.CatalystToken
+    );
+  }
+  
   contracts.reservoir = await hre.ethers.getContractAt(
     "ReservoirContract",
     deployment.contracts.ReservoirContract
@@ -155,7 +169,6 @@ async function tokenOperations(contracts, signer) {
   console.log("2. Transfer tokens");
   console.log("3. Check decay");
   console.log("4. Lock in wellness vault");
-  console.log("5. Exchange tokens");
   console.log("0. Back\n");
   
   const choice = await getUserInput("Select operation: ");
@@ -173,13 +186,23 @@ async function tokenOperations(contracts, signer) {
     case "4":
       await lockInVault(contracts, signer);
       break;
-    case "5":
-      await exchangeTokens(contracts, signer);
-      break;
   }
 }
 
 async function mintTokens(contracts, signer) {
+  // First verify we can read balances before allowing minting
+  try {
+    const testBalance = await contracts.autophageToken.balanceOf(signer.address, 0);
+  } catch (error) {
+    log("\n❌ Cannot connect to contracts!", "yellow");
+    log("\nTo fix this issue:", "cyan");
+    log("1. Make sure local node is running: npm run node", "green");
+    log("2. Deploy contracts: npm run deploy:localhost", "green");
+    log("3. Restart this console: npm run interact", "green");
+    log("\nError details: " + error.message, "yellow");
+    return;
+  }
+
   const address = await getUserInput("Recipient address (or 'me' for your address): ");
   const recipient = address === "me" ? signer.address : address;
   
@@ -202,8 +225,15 @@ async function mintTokens(contracts, signer) {
     await tx.wait();
     log("✅ Tokens minted successfully!", "green");
     log(`Transaction hash: ${tx.hash}`, "cyan");
+    
+    // Immediately verify the balance was updated
+    const newBalance = await contracts.autophageToken.balanceOf(recipient, parseInt(species));
+    log(`New balance: ${hre.ethers.formatEther(newBalance)} tokens`, "green");
   } catch (error) {
     log("❌ Error: " + error.message, "yellow");
+    if (error.message.includes("MINTER_ROLE")) {
+      log("You don't have permission to mint. Contact admin for MINTER_ROLE.", "cyan");
+    }
   }
 }
 
@@ -276,58 +306,6 @@ async function lockInVault(contracts, signer) {
   }
 }
 
-async function exchangeTokens(contracts, signer) {
-  console.log("\n💱 Token Exchange");
-  console.log("1. Buy Autophage tokens with USDC");
-  console.log("2. Sell Autophage tokens for USDC");
-  console.log("0. Back");
-  
-  const choice = await getUserInput("Select operation: ");
-  
-  if (choice === "1") {
-    const species = await getUserInput("Token species to buy (0-3): ");
-    const usdcAmount = await getUserInput("USDC amount to spend: ");
-    
-    try {
-      // Approve reservoir
-      await contracts.mockUSDC.approve(
-        await contracts.reservoir.getAddress(),
-        hre.ethers.parseEther(usdcAmount)
-      );
-      
-      log("\n⏳ Buying tokens...", "yellow");
-      const tx = await contracts.reservoir.buyAutophageTokens(
-        parseInt(species),
-        hre.ethers.parseEther(usdcAmount)
-      );
-      await tx.wait();
-      log("✅ Purchase successful!", "green");
-    } catch (error) {
-      log("❌ Error: " + error.message, "yellow");
-    }
-  } else if (choice === "2") {
-    const species = await getUserInput("Token species to sell (0-3): ");
-    const tokenAmount = await getUserInput("Token amount to sell: ");
-    
-    try {
-      // Approve reservoir
-      await contracts.autophageToken.setApprovalForAll(
-        await contracts.reservoir.getAddress(),
-        true
-      );
-      
-      log("\n⏳ Selling tokens...", "yellow");
-      const tx = await contracts.reservoir.sellAutophageTokens(
-        parseInt(species),
-        hre.ethers.parseEther(tokenAmount)
-      );
-      await tx.wait();
-      log("✅ Sale successful!", "green");
-    } catch (error) {
-      log("❌ Error: " + error.message, "yellow");
-    }
-  }
-}
 
 async function healthActivities(contracts, signer) {
   console.log("\n--- Health Activities ---");
@@ -439,7 +417,6 @@ async function createProposal(contracts, signer) {
   
   const title = await getUserInput("Title: ");
   const description = await getUserInput("Description: ");
-  const hypothesis = await getUserInput("Hypothesis (expected outcome): ");
   
   console.log("\nProposal Types:");
   console.log("0 - Parameter Change");
@@ -449,18 +426,46 @@ async function createProposal(contracts, signer) {
   const proposalType = await getUserInput("Select type (0-2): ");
   
   try {
+    // Check if user has catalyst tokens and approve if needed
+    if (contracts.catalystToken) {
+      const balance = await contracts.catalystToken.balanceOf(signer.address);
+      if (balance === 0n) {
+        log("\n❌ You need Catalyst tokens to create proposals", "yellow");
+        log("Minting some Catalyst tokens for you...", "cyan");
+        await contracts.catalystToken.mint(signer.address, hre.ethers.parseEther("100"));
+      }
+      
+      // Approve governance contract to spend catalyst tokens
+      await contracts.catalystToken.approve(contracts.governance.target, hre.ethers.parseEther("10000"));
+    }
+    
     log("\n⏳ Creating proposal...", "yellow");
     
-    // The contract expects a bytes32 hash for proposal ID, not strings
-    const proposalId = hre.ethers.keccak256(hre.ethers.toUtf8Bytes(title + Date.now()));
-    
+    // The contract expects proposalType, title, description, and callData
     const tx = await contracts.governance.createProposal(
-      proposalId,
-      parseInt(proposalType)
+      parseInt(proposalType),
+      title,
+      description,
+      "0x" // Empty call data for now
     );
     await tx.wait();
     log("✅ Proposal created successfully!", "green");
-    log(`Proposal ID: ${proposalId}`, "cyan");
+    
+    // The proposalId is returned from the transaction
+    const receipt = await tx.wait();
+    const event = receipt.logs.find(log => {
+      try {
+        const parsed = contracts.governance.interface.parseLog(log);
+        return parsed.name === "ProposalCreated";
+      } catch (e) {
+        return false;
+      }
+    });
+    
+    if (event) {
+      const parsed = contracts.governance.interface.parseLog(event);
+      log(`Proposal ID: ${parsed.args.proposalId}`, "cyan");
+    }
   } catch (error) {
     log("❌ Error: " + error.message, "yellow");
   }
@@ -473,7 +478,7 @@ async function voteOnProposal(contracts, signer) {
   try {
     log("\n⏳ Casting vote...", "yellow");
     const tx = await contracts.governance.vote(
-      proposalId,
+      parseInt(proposalId),
       support.toLowerCase() === "yes"
     );
     await tx.wait();
@@ -487,9 +492,37 @@ async function viewProposals(contracts) {
   console.log("\n📋 Governance Proposals");
   console.log("=".repeat(40));
   
-  // For demo, we'll show basic info
-  log("Viewing proposals requires indexing events", "yellow");
-  log("Use 'npx hardhat console' for advanced queries", "cyan");
+  try {
+    // Try to get proposals by ID, starting from 0
+    // Since we don't have a proposalCount, we'll try a few IDs
+    log("Checking recent proposals...", "cyan");
+    
+    let foundProposal = false;
+    for (let i = 0; i < 10; i++) {
+      try {
+        const proposal = await contracts.governance.getProposal(i);
+        // Check if proposal exists (proposer !== zero address)
+        if (proposal.proposer !== "0x0000000000000000000000000000000000000000") {
+          foundProposal = true;
+          console.log(`\nProposal #${i}:`);
+          log(`  Proposer: ${proposal.proposer}`, "cyan");
+          log(`  Type: ${["Parameter Change", "Feature Toggle", "Protocol Upgrade", "Emergency Action"][proposal.proposalType]}`, "green");
+          log(`  Votes For: ${hre.ethers.formatEther(proposal.votesFor)}`, "green");
+          log(`  Votes Against: ${hre.ethers.formatEther(proposal.votesAgainst)}`, "yellow");
+          log(`  Executed: ${proposal.executed}`, proposal.executed ? "green" : "yellow");
+          log(`  Cancelled: ${proposal.cancelled}`, proposal.cancelled ? "red" : "green");
+        }
+      } catch (e) {
+        // Proposal doesn't exist, continue
+      }
+    }
+    
+    if (!foundProposal) {
+      log("No proposals found", "yellow");
+    }
+  } catch (error) {
+    log("❌ Error fetching proposals: " + error.message, "yellow");
+  }
 }
 
 async function executeProposal(contracts, signer) {
@@ -497,11 +530,12 @@ async function executeProposal(contracts, signer) {
   
   try {
     log("\n⏳ Executing proposal...", "yellow");
-    const tx = await contracts.governance.executeProposal(proposalId);
+    const tx = await contracts.governance.executeProposal(parseInt(proposalId));
     await tx.wait();
     log("✅ Proposal executed successfully!", "green");
   } catch (error) {
     log("❌ Error: " + error.message, "yellow");
+    log("Note: Proposals must pass voting and be within execution window", "cyan");
   }
 }
 
@@ -515,31 +549,56 @@ async function viewBalances(contracts, signer) {
   // Token balances
   console.log("\n📊 Token Balances:");
   const species = ["Rhythm (RHY)", "Healing (HLN)", "Foundation (FDN)", "Catalyst (CTL)"];
+  
   for (let i = 0; i < 4; i++) {
-    const balance = await contracts.autophageToken.balanceOf(address, i);
-    if (balance > 0) {
-      log(`  ${species[i]}: ${hre.ethers.formatEther(balance)} tokens`, "green");
+    try {
+      const balance = await contracts.autophageToken.balanceOf(address, i);
+      log(`  ${species[i]}: ${hre.ethers.formatEther(balance)} tokens`, balance > 0 ? "green" : "yellow");
+    } catch (error) {
+      log(`  ${species[i]}: ERROR - ${error.message}`, "red");
+      if (i === 0) {
+        // Only show detailed error once
+        log("\n❌ Cannot read token balances!", "yellow");
+        log("This usually means:", "cyan");
+        log("1. Contracts are not deployed to your current network", "yellow");
+        log("2. You're connected to the wrong network", "yellow");
+        log("3. The deployment file is outdated", "yellow");
+        log("\nTry these steps:", "green");
+        log("1. Stop this console (Ctrl+C)", "cyan");
+        log("2. In terminal 1: npm run node", "cyan");
+        log("3. In terminal 2: npm run deploy:localhost", "cyan");
+        log("4. In terminal 3: npm run interact", "cyan");
+        break;
+      }
     }
   }
   
   // USDC balance
-  const usdcBalance = await contracts.mockUSDC.balanceOf(address);
-  if (usdcBalance > 0) {
-    log(`  USDC: ${hre.ethers.formatEther(usdcBalance)}`, "green");
+  try {
+    const usdcBalance = await contracts.mockUSDC.balanceOf(address);
+    log(`  USDC: ${hre.ethers.formatEther(usdcBalance)}`, usdcBalance > 0 ? "green" : "yellow");
+  } catch (error) {
+    log(`  USDC: ERROR - ${error.message}`, "red");
   }
   
   // Note: Wellness vault info is stored privately in the contract
   
-  // Exchange rates
-  console.log("\n💱 Current Exchange Rates:");
-  const speciesSymbols = ["RHY", "HLN", "FDN", "CTL"];
-  for (let i = 0; i < 4; i++) {
-    try {
-      const rate = await contracts.reservoir.getExchangeRate(i);
-      log(`  ${speciesSymbols[i]}: ${hre.ethers.formatEther(rate)} USDC per token`, "magenta");
-    } catch (e) {
-      // Rate might not be available
+  // Check if user has zero balances and offer to mint
+  let hasTokens = false;
+  try {
+    for (let i = 0; i < 4; i++) {
+      const balance = await contracts.autophageToken.balanceOf(address, i);
+      if (balance > 0) {
+        hasTokens = true;
+        break;
+      }
     }
+  } catch (e) {
+    // Ignore errors
+  }
+  
+  if (!hasTokens) {
+    console.log("\n💡 Tip: You have no tokens. Use option 1 to mint some tokens!");
   }
   
   console.log("\n" + "=".repeat(40));
@@ -565,6 +624,8 @@ async function main() {
   // Load deployment
   const deployment = await loadDeployment();
   log(`\n✅ Loaded deployment from ${deployment.timestamp}`, "green");
+  log(`📍 Network: ${deployment.network}`, "cyan");
+  log(`📝 Contracts deployed by: ${deployment.deployer}`, "cyan");
   
   // Get signer
   const [signer] = await hre.ethers.getSigners();
@@ -574,6 +635,17 @@ async function main() {
   const contracts = await getContracts(deployment);
   log("📄 Contracts loaded successfully", "green");
   
+  // Test contract connectivity
+  try {
+    const testBalance = await contracts.autophageToken.balanceOf(signer.address, 0);
+    log("✅ Contract connectivity verified", "green");
+  } catch (e) {
+    log("⚠️  Warning: Cannot connect to contracts. Make sure:", "yellow");
+    log("   1. Local node is running (npm run node)", "cyan");
+    log("   2. Contracts are deployed (npm run deploy:localhost)", "cyan");
+    log("   Some features may not work properly.", "yellow");
+  }
+  
   // Grant initial roles for demo
   try {
     const MINTER_ROLE = await contracts.autophageToken.MINTER_ROLE();
@@ -582,6 +654,13 @@ async function main() {
     // Also mint some initial USDC for testing
     await contracts.mockUSDC.mint(signer.address, hre.ethers.parseEther("10000"));
     log("💵 Minted 10,000 USDC for testing", "green");
+    
+    // Mint catalyst tokens for governance if available
+    if (contracts.catalystToken) {
+      await contracts.catalystToken.mint(signer.address, hre.ethers.parseEther("1000"));
+      await contracts.catalystToken.approve(contracts.governance.target, hre.ethers.parseEther("10000"));
+      log("🗳️ Minted 1,000 Catalyst tokens for governance", "green");
+    }
   } catch (e) {
     // Roles might already be granted
   }

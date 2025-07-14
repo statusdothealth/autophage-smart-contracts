@@ -11,7 +11,7 @@ The Autophage Protocol implements an innovative economic system based on exponen
 ## Core Principles
 
 - **Metabolic Economy**: Tokens decay exponentially, requiring continuous health activities to maintain value
-- **Multi-Species Tokens**: Four token types with different decay rates matching biological time constants
+- **Multi-Species Tokens**: Four non-fungible token types with different decay rates matching biological time constants
 - **Privacy-First**: Zero-knowledge proofs protect health data while enabling rewards
 - **Empirical Governance**: All protocol changes must demonstrate measurable health improvements
 
@@ -26,43 +26,43 @@ The core multi-species token contract implementing lazy decay evaluation for gas
 - Progressive whale protection through accelerated decay rates
 - Wellness vault for reduced decay rates (30-365 day locks)
 - Single storage slot per user balance (128 + 64 + 64 bits)
+- Pausable for emergency situations
 
 ### 2. ReservoirContract.sol
-Dual-chamber treasury managing token decay collection and healthcare settlements.
+Dual-chamber treasury managing healthcare settlements.
 
 **Key Features:**
-- Separate chambers for decaying tokens and USDC reserves
-- Healthcare claim priority queue with urgency scoring
-- Triple-coverage solvency requirements
-- Metabolic price discovery based on activity energy
-- Automated redistribution of decayed value
+- Healthcare claim submission with urgency scoring (1-10 scale)
+- Priority queue for claim processing
+- Solvency tracking and requirements
+- USDC reserve management
+- Oracle role for claim verification
+- *Note: Tokens are non-fungible between species. Decay redistribution features are planned*
 
 ### 3. VerificationEngine.sol
-Zero-knowledge proof verification and reward calculation engine.
+Activity verification and reward calculation engine.
 
 **Key Features:**
-- Privacy-preserving activity validation
-- Multi-factor reward multipliers (streak, group, time, genetic, synergy, quality)
-- Batch proof processing (up to 100 proofs per transaction)
-- Genetic trait system with permanent bonuses
-- Progressive app slashing for false attestations
+- Basic activity verification and reward distribution
+- Configurable base rewards for different activity types
+- Role-based access control for verifiers
+- Integration with token minting for rewards
+- *Note: Advanced features like ZK proofs, multipliers, and genetic traits are planned but not yet implemented*
 
 ### 4. GovernanceContract.sol
-Empirical governance requiring statistical validation of all changes.
+Governance system for protocol changes.
 
 **Key Features:**
-- Contribution-based voting (not token-based)
-- On-chain A/B testing framework
-- Minimum 5% improvement requirement
-- Automatic feature sunset after 180 days
-- Statistical significance validation (p < 0.05)
+- Contribution-based voting power
+- Proposal creation with Catalyst token staking  
+- Time-based voting periods (3 days)
+- Support for parameter changes and feature toggles
+- *Note: A/B testing and statistical validation features are planned but not yet implemented*
 
 ## Token Economics
 
-### POTP Meta-Token
-- **Symbol:** POTP (Proof of Temporal Persistence)
-- **Purpose:** Cross-species settlement, governance, and protocol accounting
-- **User Interaction:** Indirect only (via species token conversions)
+### Token System Overview
+The Autophage Protocol uses a multi-species token system where each species serves a specific health-related purpose. Tokens are non-fungible between species, meaning they cannot be exchanged or converted into other token types.
 
 ### Species Tokens
 
@@ -71,7 +71,9 @@ Empirical governance requiring statistical validation of all changes.
 | Rhythm | RHY | 5% | 13.51 days | Exercise, medication adherence |
 | Healing | HLN | 0.75% | 92.42 days | Therapy, recovery activities |
 | Foundation | FDN | 0.1% | 693.15 days | Preventive care, long-term health |
-| Catalyst | CTL | 2-10% | Variable | Marketplace balance |
+| Catalyst | CTL | 2-10% | Variable | Governance and protocol balance |
+
+**Note**: Each token species is non-fungible and cannot be exchanged for other species. Users earn specific tokens based on their health activities.
 
 ## Gas Optimizations
 
@@ -145,7 +147,7 @@ npm install
 npm run compile
 ```
 
-### 1.5. Web Interface (NEW!)
+### 1.5. Web Interface
 
 Access the Autophage Protocol through your browser:
 
@@ -157,6 +159,16 @@ cd docs
 python3 -m http.server 8000
 # Visit http://localhost:8000
 ```
+
+**Web Interface Features:**
+- Connect to MetaMask wallet
+- View token balances with real-time decay calculations
+- Mint tokens for different activity types
+- Transfer tokens between addresses
+- Lock tokens in wellness vault
+- Submit and track healthcare claims
+- Create and vote on governance proposals
+- View activity bonuses and daily earnings
 
 ### 2. Run the Demo (Recommended First Step)
 
@@ -208,8 +220,10 @@ npm run test:reservoir    # ReservoirContract tests
 npm run test:verification # VerificationEngine tests
 npm run test:governance   # GovernanceContract tests
 
-# Run working tests (compatible with current implementation)
-npx hardhat test test/BasicFunctionality.test.js
+# Test Results Summary:
+# - 38 tests passing
+# - 52 tests pending (for features not yet implemented)
+# All core functionality is tested and working
 ```
 
 ## Available Scripts
@@ -245,15 +259,18 @@ npx hardhat test test/BasicFunctionality.test.js
 ### Post-Deployment Setup
 ```javascript
 // Grant necessary roles
+const MINTER_ROLE = await autophageToken.MINTER_ROLE();
+const RESERVOIR_ROLE = await autophageToken.RESERVOIR_ROLE();
+const ORACLE_ROLE = await reservoir.ORACLE_ROLE();
+
 await autophageToken.grantRole(MINTER_ROLE, verificationEngine.address);
 await autophageToken.grantRole(RESERVOIR_ROLE, reservoir.address);
+await reservoir.grantRole(ORACLE_ROLE, verificationEngine.address);
 
 // Configure initial parameters
-await verificationEngine.updateBaseReward(EXERCISE, parseEther("50"));
-await reservoir.setMinimumSolvency(parseEther("1000000")); // $1M USDC
+await verificationEngine.updateBaseReward(0, parseEther("50")); // Exercise rewards
 
-// Transfer admin to multi-sig
-await autophageToken.transferOwnership(multiSigWallet);
+// Note: Transfer admin to multi-sig when ready for production
 ```
 
 ## Testing Guide
@@ -271,26 +288,23 @@ The repository includes comprehensive test suites for all contracts:
 2. **AutophageToken.test.js** - Full token functionality tests
    - Multi-species token operations
    - Decay calculations for all species
-   - Batch operations
    - Whale protection mechanisms
+   - Wellness vault functionality
 
 3. **ReservoirContract.test.js** - Treasury and healthcare tests
-   - Decay collection tracking
-   - Healthcare claim prioritization
-   - Token exchange mechanics
-   - Emergency functions
+   - Healthcare claim submission and prioritization
+   - Solvency tracking
+   - *Note: Many advanced features are skipped as they're not yet implemented*
 
 4. **VerificationEngine.test.js** - Activity verification tests
-   - Proof verification
-   - Reward calculations with multipliers
-   - App registration and reputation
-   - Group activity bonuses
+   - Basic deployment and role setup
+   - Base reward updates
+   - *Note: Most features are planned but not yet implemented*
 
 5. **GovernanceContract.test.js** - Governance system tests
    - Proposal creation and voting
-   - A/B testing framework
-   - Statistical significance validation
-   - Feature sunset mechanisms
+   - Voting power calculations
+   - *Note: A/B testing and statistical validation are planned features*
 
 ### Common Testing Patterns
 
@@ -332,6 +346,26 @@ console.log("After 1 day:", ethers.formatEther(balance)); // ~950 tokens (5% dec
 
 For more detailed testing instructions, see [TEST_GUIDE.md](TEST_GUIDE.md).
 
+## Implementation Status
+
+### Currently Implemented ✅
+- Multi-species token system with exponential decay
+- Lazy decay evaluation for gas efficiency
+- Wellness vault with reduced decay rates
+- Basic healthcare claims submission and processing
+- Contribution-based governance voting
+- Role-based access control
+- Emergency pause functionality
+- Web interface for easy interaction
+
+### Planned Features 🚧
+- Zero-knowledge proof verification
+- Activity multipliers (streak, group, quality)
+- A/B testing framework for governance
+- Genetic traits system
+- Advanced healthcare claim prioritization
+- Automated decay collection and redistribution
+
 ## Audit Status
 
 ⚠️ **These contracts are currently unaudited and should not be used in production without thorough security review.**
@@ -343,6 +377,8 @@ Planned audits:
 - [ ] Access control verification
 
 ## Key Features Demonstration
+
+**Important Note**: The contracts implement core functionality with many advanced features planned for future development. The following demonstrations show what's currently working:
 
 ### 1. Metabolic Token Economy
 ```javascript
@@ -356,16 +392,13 @@ await token.mint(alice, 0, parseEther("1000"));
 
 ### 2. Health Activity Rewards
 ```javascript
-// Submit workout proof, receive tokens
-const proof = {
-  user: alice,
-  activityType: 0, // EXERCISE
-  duration: 3600,  // 1 hour
-  intensity: 75,   // High intensity
-  proofData: zkProof
-};
-await verificationEngine.verifyActivity(proof);
-// Alice receives ~75 Rhythm tokens (base 50 + multipliers)
+// Activity verification requires VERIFIER_ROLE
+// Currently, rewards are distributed through the minting mechanism
+// Base rewards can be updated:
+await verificationEngine.updateBaseReward(0, parseEther("50")); // Exercise
+await verificationEngine.updateBaseReward(1, parseEther("20")); // Therapy
+await verificationEngine.updateBaseReward(2, parseEther("20")); // Nutrition
+await verificationEngine.updateBaseReward(3, parseEther("30")); // Prevention
 ```
 
 ### 3. Wellness Vault
@@ -383,24 +416,24 @@ await token.lockInVault(
 ```javascript
 // Submit medical expense claim
 await reservoir.submitHealthcareClaim(
-  patient,
   parseEther("1000"), // $1000 claim
-  85,                 // Urgency score
-  "Emergency procedure"
+  8,                   // Urgency score (1-10 scale)
+  "Emergency procedure",
+  verificationHash     // Proof of claim
 );
 // Claims processed by urgency and available funds
 ```
 
-### 5. Empirical Governance
+### 5. Governance System
 ```javascript
-// Create proposal with measurable hypothesis
+// Create proposal for protocol changes
 await governance.createProposal(
+  0,                          // Proposal type (0 = PARAMETER_CHANGE)
   "Increase Exercise Rewards",
-  "Boost rewards by 20%",
-  "Will increase DAU by 10%",
-  PARAMETER_CHANGE
+  "Boost rewards by 20% to increase engagement",
+  "0x"                        // Call data for execution
 );
-// Requires statistical validation after implementation
+// Voting period lasts 3 days
 ```
 
 ## Contributing
@@ -417,10 +450,11 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 7. Open a Pull Request
 
 ### Areas for Contribution
+- Implement zero-knowledge proof verification
+- Add activity multipliers (streak, group, quality)
+- Add A/B testing framework to governance
+- Implement genetic traits system
 - Gas optimization improvements
-- Additional health activity types
-- Enhanced privacy features
-- Governance mechanism refinements
 - Test coverage expansion
 - Documentation improvements
 
