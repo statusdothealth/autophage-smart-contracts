@@ -1,0 +1,913 @@
+/* Autophage Protocol Web Interface Styles - LaTeX Academic Style */
+/* Import brand styles */
+@import url('autophage-brand.css');
+
+/* Additional styles specific to the smart contracts interface */
+
+/* LaTeX style header - exact copy from litepaper */
+.latex-title {
+    text-align: left;
+    margin-bottom: 2em;
+}
+
+.latex-title h1 {
+    font-size: 17pt;
+    font-weight: bold;
+    margin-bottom: 0.5em;
+    text-align: left;
+}
+
+.latex-author {
+    font-size: 12pt;
+    margin-bottom: 0.3em;
+    text-align: left;
+}
+
+.latex-author a {
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+.latex-author a:hover {
+    text-decoration: underline;
+}
+
+.latex-date {
+    font-size: 10pt;
+    margin-bottom: 2em;
+    text-align: left;
+}
+
+.latex-nav {
+    text-align: left;
+    font-size: 9pt;
+    padding: 1em 0;
+    border-top: 0.4pt solid var(--rule-color);
+    border-bottom: 0.4pt solid var(--rule-color);
+    margin-bottom: 2em;
+}
+
+.latex-nav a {
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+.latex-nav a:hover {
+    text-decoration: underline;
+}
+
+.nav-separator {
+    margin: 0 1em;
+    color: var(--caption-color);
+}
+
+/* System Metrics */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5em;
+    margin-top: 1em;
+}
+
+.metric-card {
+    border: 0.4pt solid var(--rule-color);
+    padding: 1em;
+    background: var(--paper-bg);
+}
+
+.metric-card h3 {
+    font-size: 11pt;
+    margin-bottom: 0.5em;
+}
+
+.metric-value {
+    font-size: 18pt;
+    font-weight: bold;
+    font-family: 'JetBrains Mono', monospace;
+    margin: 0.25em 0;
+}
+
+.metric-label {
+    font-size: 9pt;
+    color: var(--caption-color);
+    margin: 0;
+}
+
+.metric-details {
+    margin-top: 1em;
+    font-size: 9pt;
+}
+
+.metric-details summary {
+    cursor: pointer;
+    color: var(--caption-color);
+    font-style: italic;
+}
+
+.metric-details p,
+.metric-details ul {
+    margin-top: 0.5em;
+    color: var(--caption-color);
+}
+
+.metric-details ul {
+    margin-left: 1.5em;
+}
+
+.supply-breakdown {
+    margin-top: 0.5em;
+}
+
+.supply-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25em 0;
+    font-size: 10pt;
+}
+
+.supply-label {
+    font-weight: 600;
+}
+
+.supply-value {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--caption-color);
+}
+
+.reservoir-status {
+    font-size: 10pt;
+}
+
+.reservoir-status p {
+    margin: 0.25em 0;
+}
+
+.status-indicator {
+    font-weight: bold;
+    color: #2ecc71;
+}
+
+.status-indicator.warning {
+    color: #f39c12;
+}
+
+.status-indicator.error {
+    color: #e74c3c;
+}
+
+/* Wallet Management */
+.wallet-controls {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+}
+
+.wallet-select-wrapper {
+    margin-bottom: var(--space-sm);
+}
+
+.wallet-select {
+    width: 100%;
+    padding: 0.5em;
+    border: 0.4pt solid var(--rule-color);
+    background: var(--paper-bg);
+    color: var(--text-color);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10pt;
+}
+
+.wallet-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: var(--space-md);
+}
+
+.wallet-item {
+    border: 0.4pt solid var(--rule-color);
+    padding: var(--space-sm);
+    margin-bottom: var(--space-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--paper-bg);
+}
+
+.wallet-item.current {
+    border-left: 2pt solid var(--text-color);
+}
+
+.wallet-item-info {
+    flex: 1;
+}
+
+.wallet-item-name {
+    font-weight: bold;
+    margin-bottom: 0.25em;
+}
+
+.wallet-item-address {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9pt;
+    color: var(--caption-color);
+}
+
+.wallet-item-type {
+    font-size: 8pt;
+    color: var(--caption-color);
+    font-style: italic;
+}
+
+.wallet-item-actions {
+    display: flex;
+    gap: var(--space-xs);
+}
+
+.wallet-item-actions button {
+    padding: 2px 8px;
+    font-size: 9pt;
+    margin: 0;
+}
+
+.wallet-actions {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* LaTeX document wrapper */
+#app {
+    max-width: var(--page-width);
+    margin: var(--margin-top) auto var(--margin-bottom) auto;
+    padding: 0 1in;
+    background: var(--paper-bg);
+    min-height: 100vh;
+}
+
+/* Main content area */
+main.container {
+    padding-top: 0;
+}
+
+/* Ensure body has proper background */
+body {
+    background: var(--paper-bg);
+}
+
+/* Dark mode initialization - prevent flash */
+html.dark-mode-init {
+    background: #0a0a0a;
+}
+
+/* Demo mode specific styles */
+.demo-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1em;
+    margin-top: 1em;
+}
+
+.demo-actions .btn {
+    width: 100%;
+    padding: 0.5em 1em;
+}
+
+/* Info section lists */
+#infoSection ul {
+    list-style-position: inside;
+    margin-left: 2em;
+}
+
+#infoSection li {
+    margin-bottom: 0.3em;
+    color: var(--caption-color);
+}
+
+/* Tab content */
+.tab-content {
+    margin-top: 1em;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+    animation: fadeIn 0.3s;
+}
+
+/* Button variants */
+.btn-small {
+    padding: 2px 8px;
+    font-size: 9pt;
+}
+
+.btn-activity {
+    font-family: 'Computer Modern Sans', sans-serif;
+    font-size: 11pt;
+    padding: 6px 16px;
+    background: var(--paper-bg);
+    color: var(--text-color);
+    border: 1px solid var(--rule-color);
+    cursor: pointer;
+    width: 100%;
+    margin-top: 0.5em;
+    transition: all 0.2s;
+}
+
+.btn-activity:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+}
+
+body.dark-mode .btn-activity {
+    background: var(--paper-bg);
+    color: var(--text-color);
+    border-color: var(--rule-color);
+}
+
+body.dark-mode .btn-activity:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+}
+
+/* Transaction list specific styles */
+.tx-item .tx-details {
+    color: var(--caption-color);
+    font-size: 9pt;
+}
+
+/* Intensity slider */
+#activityIntensity {
+    width: 100%;
+}
+
+#intensityValue {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: bold;
+    margin-left: 0.5em;
+}
+
+/* Decay reduction display */
+.decay-reduction {
+    background: var(--paper-bg);
+    padding: 1em;
+    border: 0.4pt solid var(--rule-color);
+    margin: 1em 0;
+    text-align: center;
+}
+
+.decay-reduction p {
+    margin: 0;
+    font-weight: 600;
+}
+
+.decay-reduction span {
+    font-size: 14pt;
+    font-weight: bold;
+    color: var(--text-color);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Info box */
+.info {
+    background: var(--paper-bg);
+    color: var(--text-color);
+    padding: 1em;
+    border: 0.4pt solid var(--rule-color);
+    margin-bottom: 1em;
+    font-size: 10pt;
+}
+
+/* Exchange rates display */
+.exchange-rates {
+    background: var(--paper-bg);
+    padding: 1em;
+    border: 0.4pt solid var(--rule-color);
+    margin-bottom: 1em;
+}
+
+.exchange-rates h4 {
+    margin-bottom: 0.5em;
+    color: var(--text-color);
+}
+
+.rates-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5em;
+}
+
+.rate-item {
+    padding: 0.5em;
+    background: var(--paper-bg);
+    border: 0.4pt solid var(--rule-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9pt;
+}
+
+.rate-item span {
+    color: var(--text-color);
+}
+
+/* Reward preview */
+.reward-preview {
+    background: var(--paper-bg);
+    border: 0.4pt solid var(--rule-color);
+    padding: 1em;
+    margin-top: 1em;
+    text-align: center;
+}
+
+.reward-preview p {
+    margin: 0;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.reward-preview span {
+    font-size: 12pt;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Wallet info */
+.wallet-info {
+    background: var(--paper-bg);
+    border: 0.4pt solid var(--rule-color);
+    padding: 0.5em 1em;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    flex: 1;
+}
+
+.wallet-info .address {
+    font-weight: 600;
+    font-size: 9pt;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.wallet-info .network {
+    font-size: 8pt;
+    color: var(--caption-color);
+}
+
+/* Wallet container */
+.wallet-container {
+    padding-top: 0.75em;
+    padding-bottom: 0.75em;
+}
+
+/* Wallet section */
+.wallet-section {
+    display: flex;
+    gap: 0.5em;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+/* Transaction list */
+.tx-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.tx-item {
+    padding: 0.5em;
+    border-bottom: 0.4pt solid var(--rule-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background var(--transition);
+}
+
+.tx-item:hover {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+body.dark-mode .tx-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.tx-item:last-child {
+    border-bottom: none;
+}
+
+.tx-type {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.tx-amount {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+}
+
+.tx-time {
+    font-size: 9pt;
+    color: var(--caption-color);
+}
+
+.empty-state {
+    text-align: center;
+    color: var(--caption-color);
+    padding: 2em;
+    font-style: italic;
+}
+
+/* Modal - LaTeX Style */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--paper-bg);
+    border: 0.4pt solid var(--rule-color);
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    animation: fadeIn 0.3s;
+}
+
+.wallet-actions {
+    padding: 1em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+.wallet-list {
+    padding: 1em;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.modal-content h2 {
+    background: var(--paper-bg);
+    color: var(--text-color);
+    padding: 1em;
+    margin: 0;
+    border-bottom: 0.4pt solid var(--rule-color);
+    font-size: 12pt;
+}
+
+.modal-content form {
+    padding: 1em;
+}
+
+.close {
+    position: absolute;
+    top: 0.5em;
+    right: 0.5em;
+    font-size: 14pt;
+    color: var(--text-color);
+    cursor: pointer;
+    background: none;
+    border: none;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity var(--transition);
+}
+
+.close:hover {
+    opacity: 0.6;
+}
+
+/* Form group additions */
+.form-group small {
+    display: block;
+    margin-top: 0.25em;
+    color: var(--caption-color);
+    font-size: 9pt;
+}
+
+/* Disclaimer */
+.disclaimer {
+    font-size: 9pt;
+    font-style: italic;
+    color: var(--caption-color);
+}
+
+/* Activity grid */
+.activity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1em;
+    margin-top: 1em;
+}
+
+/* Token grid */
+.token-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1em;
+    margin-top: 1em;
+}
+
+/* Remove colored token card borders */
+.token-card.rhythm,
+.token-card.healing,
+.token-card.foundation,
+.token-card.catalyst {
+    border-color: var(--rule-color);
+}
+
+.token-card::before {
+    display: none;
+}
+
+/* Theme toggle override for this interface */
+.theme-toggle {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    font-family: Georgia, serif;
+    font-size: 10px;
+    background: var(--paper-bg);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    padding: 1px 4px;
+    cursor: pointer;
+    z-index: 1000;
+    border-radius: 2px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.theme-toggle:hover {
+    opacity: 1;
+    background: var(--text-color);
+    color: var(--paper-bg);
+}
+
+/* Inline form groups */
+.form-group-inline {
+    display: flex;
+    gap: 0.5em;
+    align-items: center;
+}
+
+.form-group-inline input {
+    flex: 1;
+}
+
+.form-group-inline select {
+    width: auto;
+    min-width: 150px;
+}
+
+.form-group-inline button {
+    flex-shrink: 0;
+}
+
+/* Responsive additions */
+@media (max-width: 768px) {
+    #app {
+        padding: 0;
+    }
+    
+    .wallet-section {
+        margin-top: 1em;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .wallet-controls {
+        flex-wrap: wrap;
+        gap: 0.5em;
+        width: 100%;
+    }
+    
+    .wallet-controls button {
+        flex: 1;
+        min-width: 120px;
+    }
+    
+    .wallet-select-wrapper {
+        flex-wrap: wrap;
+        gap: 0.5em;
+        width: 100%;
+    }
+    
+    .wallet-select {
+        width: 100%;
+        margin-bottom: 0.5em;
+    }
+    
+    .wallet-select-wrapper button {
+        flex: 1;
+    }
+    
+    .btn-small {
+        padding: 6px 12px;
+        font-size: 10pt;
+    }
+
+    .rates-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .demo-actions {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Form styling for mobile */
+    .form-group {
+        margin-bottom: 1.5em;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5em;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        display: block;
+        margin-bottom: 0.5em;
+    }
+    
+    .form-group button.btn-small {
+        margin-top: 0.5em;
+        display: block;
+        width: auto;
+    }
+    
+    /* Stack form elements on mobile */
+    .form-group > div {
+        flex-direction: column;
+        gap: 0.5em;
+    }
+    
+    .form-group > div > * {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+    
+    /* Stack inline form groups on mobile */
+    .form-group-inline {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .form-group-inline input,
+    .form-group-inline select,
+    .form-group-inline button {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+}
+
+/* Icon System */
+.icon {
+    display: inline-block;
+    width: 1.2em;
+    height: 1.2em;
+    vertical-align: text-bottom;
+    fill: currentColor;
+}
+
+/* Info icon removed - USDC value shown directly on card */
+
+.icon-inline {
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+}
+
+.icon-success {
+    color: #2ecc71;
+}
+
+.icon-warning {
+    color: #f39c12;
+}
+
+.icon-error {
+    color: #e74c3c;
+}
+
+/* AI Badge */
+.ai-badge-inline {
+    border-radius: 10px !important;
+}
+
+.ai-badge-inline:hover {
+    opacity: 0.9 !important;
+}
+
+.ai-badge-inline:hover .ai-badge-text {
+    display: inline-block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Vaults List */
+.vaults-list {
+    margin-top: 1em;
+}
+
+.vault-item {
+    border: 0.4pt solid var(--rule-color);
+    padding: 1.5em;
+    margin-bottom: 1em;
+    background: var(--paper-bg);
+}
+
+.vault-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1em;
+}
+
+.vault-objective {
+    font-size: 12pt;
+    font-weight: 600;
+    margin: 0;
+}
+
+.vault-status {
+    font-size: 9pt;
+    color: var(--caption-color);
+}
+
+.vault-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1em;
+    margin-bottom: 1em;
+}
+
+.vault-detail {
+    font-size: 10pt;
+}
+
+.vault-detail-label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.25em;
+}
+
+.vault-detail-value {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.vault-progress {
+    width: 100%;
+    height: 8px;
+    background: var(--rule-color);
+    margin: 1em 0;
+    position: relative;
+}
+
+.vault-progress-bar {
+    height: 100%;
+    background: var(--text-color);
+    transition: width 0.3s ease;
+}
+
+.vault-actions {
+    display: flex;
+    gap: 1em;
+    margin-top: 1em;
+}
+
+.withdrawal-warning {
+    font-size: 9pt;
+    color: #d33;
+    margin-top: 0.5em;
+    font-style: italic;
+}

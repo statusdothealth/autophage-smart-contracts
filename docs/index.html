@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autophage Protocol - Smart Contracts Dashboard</title>
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="alternate icon" href="assets/favicon.ico">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    
+    <!-- Android Chrome Icons -->
+    <link rel="manifest" href="assets/site.webmanifest">
+    
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileColor" content="#f5f5f5">
+    <meta name="msapplication-TileImage" content="assets/mstile-144x144.png">
+    <meta name="msapplication-config" content="assets/browserconfig.xml">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#f5f5f5">
+    
+    <!-- Theme initialization (before styles to prevent flash) -->
+    <script src="js/theme.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Ethers.js from unpkg CDN (more reliable) -->
+    <script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Mode Toggle -->
+        <button class="mode-toggle" onclick="toggleTheme()">D</button>
+        
+        <!-- Header -->
+        <header>
+            <div class="container">
+                <div class="latex-title">
+                    <h1>Autophage Protocol</h1>
+                    <div class="latex-author"><a href="https://autophage.xyz/about#research" target="_blank">0x42 Research</a></div>
+                    <div class="latex-date">Version 1.0 — <span id="deployment-date">\today</span></div>
+                </div>
+                
+                <!-- Navigation -->
+                <nav class="latex-nav">
+                    <a href="https://autophage.xyz/">Main Website</a>
+                    <span class="nav-separator"> • </span>
+                    <a href="https://github.com/statusdothealth/autophage-smart-contracts" target="_blank">GitHub</a>
+                    <span class="nav-separator"> • </span>
+                    <a href="https://autophage.xyz/about">About</a>
+                </nav>
+            </div>
+        </header>
+        
+        <!-- Wallet Section -->
+        <div class="container wallet-container">
+            <div class="wallet-section">
+                <div class="wallet-controls">
+                    <button id="createWallet" class="btn btn-secondary">Create Test Wallet</button>
+                    <button id="manageWallets" class="btn btn-secondary">Manage Wallets</button>
+                </div>
+                <div id="walletInfo" class="wallet-info" style="display: none;">
+                    <div class="wallet-select-wrapper">
+                        <select id="walletSelect" class="wallet-select">
+                            <option value="">Select Wallet</option>
+                        </select>
+                        <button class="btn-small" onclick="app.createTestWallet()" style="margin-left: 0.5em;">New</button>
+                        <button class="btn-small" onclick="app.copyCurrentAddress()" style="margin-left: 0.5em;">Copy</button>
+                        <button class="btn-small" onclick="app.showWalletModal()" style="margin-left: 0.5em;">Manage</button>
+                    </div>
+                    <span class="address"></span>
+                    <span class="network"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="container">
+            <!-- System Metrics -->
+            <section class="card" id="systemMetrics">
+                <h2>System Metrics</h2>
+                <p class="disclaimer" style="font-size: 0.875rem; color: var(--caption-color); margin-bottom: 1.5em;"><svg class="icon icon-inline" style="width: 14px; height: 14px;"><use href="assets/icons.svg#icon-warning"></use></svg> These metrics are simulated for demonstration purposes. Real metabolic pricing would be based on actual network usage from energy differentials and catalyst activity as described in the litepaper.</p>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <h3>Metabolic Price</h3>
+                        <p class="metric-value">$<span id="metabolicPrice">0.00</span></p>
+                        <p class="metric-label">per energy unit</p>
+                        <details class="metric-details">
+                            <summary>How is this calculated?</summary>
+                            <p>The metabolic price emerges from:</p>
+                            <ul>
+                                <li>Total health energy (exercise, therapy, etc.)</li>
+                                <li>30-day marketplace volume</li>
+                                <li>Active token supply & velocity</li>
+                                <li>Catalyst token ratio (currently <span id="catalystRatio">0%</span>)</li>
+                            </ul>
+                            <p>Formula: (Energy × (1 + 2×CTL%) + Volume × (1 - CTL%)) / (Supply × Velocity × Activity)</p>
+                        </details>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Token Supply</h3>
+                        <div class="supply-breakdown">
+                            <div class="supply-item">
+                                <span class="supply-label">Total Supply:</span>
+                                <span class="supply-value" id="totalSupply">0</span>
+                            </div>
+                            <div class="supply-item rhythm">
+                                <span class="supply-label">Rhythm (RHY):</span>
+                                <span class="supply-value"><span id="rhythmSupply">0</span> (<span id="rhythmPercent">0%</span>)</span>
+                            </div>
+                            <div class="supply-item healing">
+                                <span class="supply-label">Healing (HLN):</span>
+                                <span class="supply-value"><span id="healingSupply">0</span> (<span id="healingPercent">0%</span>)</span>
+                            </div>
+                            <div class="supply-item foundation">
+                                <span class="supply-label">Foundation (FDN):</span>
+                                <span class="supply-value"><span id="foundationSupply">0</span> (<span id="foundationPercent">0%</span>)</span>
+                            </div>
+                            <div class="supply-item catalyst">
+                                <span class="supply-label">Catalyst (CTL):</span>
+                                <span class="supply-value"><span id="catalystSupply">0</span> (<span id="catalystPercent">0%</span>)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Reservoir Status</h3>
+                        <div class="reservoir-status">
+                            <p>Token Chamber: <span id="tokenChamber">0</span> tokens</p>
+                            <p>USDC Reserve: $<span id="usdcReserve">0.00</span></p>
+                            <p>Pending Claims: <span id="pendingClaims">0</span></p>
+                            <p>Solvency: <span id="solvencyStatus" class="status-indicator">✓</span></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Token Overview -->
+            <section class="card" id="tokenOverview">
+                <h2>Token Balances</h2>
+                <div class="usdc-balance" style="margin-bottom: 1em; padding: 1em; border: 0.4pt solid var(--rule-color); background: var(--paper-bg);">
+                    <h3 style="font-size: 11pt; margin: 0 0 0.5em 0;">USDC Balance</h3>
+                    <p style="font-size: 14pt; font-weight: bold; font-family: 'JetBrains Mono', monospace; margin: 0;">$<span id="usdcBalance">0.00</span></p>
+                    <p style="font-size: 9pt; color: var(--caption-color); margin: 0.25em 0 0 0;">Stablecoin for exchanges</p>
+                </div>
+                <div class="token-grid">
+                    <div class="token-card rhythm">
+                        <h3>Rhythm (RHY)</h3>
+                        <p class="balance">0.00</p>
+                        <p class="usdc-value" style="font-size: 0.875rem; color: var(--caption-color); margin: 0.25em 0;">≈ $<span class="usdc-amount">0.00</span> USDC</p>
+                        <p class="decay-rate">5% daily decay</p>
+                        <p class="use-case">Exercise & Medication</p>
+                        <div class="token-metrics" style="display: none;">
+                            <p class="token-lifetime">Lasts: <span class="lifetime-value">-</span></p>
+                            <p class="daily-loss">Daily loss: <span class="loss-value">-</span></p>
+                            <p class="usage-suggestion">💡 <span class="suggestion-text">-</span></p>
+                        </div>
+                    </div>
+                    <div class="token-card healing">
+                        <h3>Healing (HLN)</h3>
+                        <p class="balance">0.00</p>
+                        <p class="usdc-value" style="font-size: 0.875rem; color: var(--caption-color); margin: 0.25em 0;">≈ $<span class="usdc-amount">0.00</span> USDC</p>
+                        <p class="decay-rate">0.75% daily decay</p>
+                        <p class="use-case">Therapy & Recovery</p>
+                        <div class="token-metrics" style="display: none;">
+                            <p class="token-lifetime">Lasts: <span class="lifetime-value">-</span></p>
+                            <p class="daily-loss">Daily loss: <span class="loss-value">-</span></p>
+                            <p class="usage-suggestion">💡 <span class="suggestion-text">-</span></p>
+                        </div>
+                    </div>
+                    <div class="token-card foundation">
+                        <h3>Foundation (FDN)</h3>
+                        <p class="balance">0.00</p>
+                        <p class="usdc-value" style="font-size: 0.875rem; color: var(--caption-color); margin: 0.25em 0;">≈ $<span class="usdc-amount">0.00</span> USDC</p>
+                        <p class="decay-rate">0.1% daily decay</p>
+                        <p class="use-case">Preventive Care</p>
+                        <div class="token-metrics" style="display: none;">
+                            <p class="token-lifetime">Lasts: <span class="lifetime-value">-</span></p>
+                            <p class="daily-loss">Daily loss: <span class="loss-value">-</span></p>
+                            <p class="usage-suggestion">💡 <span class="suggestion-text">-</span></p>
+                        </div>
+                    </div>
+                    <div class="token-card catalyst">
+                        <h3>Catalyst (CTL)</h3>
+                        <p class="balance">0.00</p>
+                        <p class="usdc-value" style="font-size: 0.875rem; color: var(--caption-color); margin: 0.25em 0;">≈ $<span class="usdc-amount">0.00</span> USDC</p>
+                        <p class="decay-rate">2-10% dynamic</p>
+                        <p class="use-case">Marketplace</p>
+                        <div class="token-metrics" style="display: none;">
+                            <p class="token-lifetime">Lasts: <span class="lifetime-value">-</span></p>
+                            <p class="daily-loss">Daily loss: <span class="loss-value">-</span></p>
+                            <p class="usage-suggestion">💡 <span class="suggestion-text">-</span></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Token Operations -->
+            <section class="card" id="tokenOperations">
+                <h2>Token Operations</h2>
+                <div class="tabs">
+                    <button class="tab active" data-tab="mint">Mint</button>
+                    <button class="tab" data-tab="transfer">Transfer</button>
+                    <button class="tab" data-tab="vault">Wellness Vault</button>
+                    <button class="tab" data-tab="myvaults">My Vaults</button>
+                    <button class="tab" data-tab="exchange">Exchange</button>
+                </div>
+                
+                <div class="tab-content">
+                    <!-- Mint Tab -->
+                    <div id="mintTab" class="tab-pane active">
+                        <h3>Mint Tokens</h3>
+                        <form id="mintForm">
+                            <div class="form-group">
+                                <label>Recipient Address</label>
+                                <input type="text" id="mintRecipient" placeholder="0x..." required>
+                                <button type="button" class="btn-small" onclick="document.getElementById('mintRecipient').value = window.currentAccount">Use My Address</button>
+                            </div>
+                            <div class="form-group">
+                                <label>Token Species</label>
+                                <select id="mintSpecies">
+                                    <option value="0">Rhythm (RHY) - 5% decay</option>
+                                    <option value="1">Healing (HLN) - 0.75% decay</option>
+                                    <option value="2">Foundation (FDN) - 0.1% decay</option>
+                                    <option value="3">Catalyst (CTL) - 2-10% decay</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Amount</label>
+                                <input type="number" id="mintAmount" placeholder="0.0" step="0.01" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Mint Tokens</button>
+                        </form>
+                    </div>
+
+                    <!-- Transfer Tab -->
+                    <div id="transferTab" class="tab-pane" style="display: none;">
+                        <h3>Transfer Tokens</h3>
+                        <form id="transferForm">
+                            <div class="form-group">
+                                <label>Recipient</label>
+                                <div class="form-group-inline">
+                                    <input type="text" id="transferRecipient" placeholder="0x... or select wallet" required>
+                                    <select id="recipientWalletSelect" onchange="app.selectRecipientWallet(this.value)">
+                                        <option value="">Select wallet...</option>
+                                    </select>
+                                    <button type="button" class="btn-small" onclick="app.createTestWallet()">New Wallet</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Token Species</label>
+                                <select id="transferSpecies">
+                                    <option value="0">Rhythm (RHY)</option>
+                                    <option value="1">Healing (HLN)</option>
+                                    <option value="2">Foundation (FDN)</option>
+                                    <option value="3">Catalyst (CTL)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Amount</label>
+                                <input type="number" id="transferAmount" placeholder="0.0" step="0.01" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Transfer</button>
+                        </form>
+                    </div>
+
+                    <!-- Vault Tab -->
+                    <div id="vaultTab" class="tab-pane" style="display: none;">
+                        <h3>Wellness Vault</h3>
+                        <p class="info">Lock tokens toward a specific health objective to reduce decay rate by 0.5% per 30 days (max 50% reduction)</p>
+                        <form id="vaultForm">
+                            <div class="form-group">
+                                <label>Health Objective</label>
+                                <select id="vaultObjective" required>
+                                    <option value="">Select objective...</option>
+                                    <option value="exercise">Daily Exercise Routine</option>
+                                    <option value="meditation">Meditation Practice</option>
+                                    <option value="sleep">Sleep Improvement</option>
+                                    <option value="nutrition">Nutrition Goals</option>
+                                    <option value="therapy">Therapy Sessions</option>
+                                    <option value="medication">Medication Adherence</option>
+                                    <option value="checkup">Preventive Checkups</option>
+                                    <option value="weight">Weight Management</option>
+                                    <option value="substance">Substance Recovery</option>
+                                    <option value="physical">Physical Therapy</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Token Species</label>
+                                <select id="vaultSpecies">
+                                    <option value="0">Rhythm (RHY)</option>
+                                    <option value="1">Healing (HLN)</option>
+                                    <option value="2">Foundation (FDN)</option>
+                                    <option value="3">Catalyst (CTL)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Amount to Lock <button type="button" class="btn-small" onclick="app.setMaxVaultAmount()">Max</button></label>
+                                <input type="number" id="vaultAmount" placeholder="0.0" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Lock Duration (days)</label>
+                                <input type="number" id="vaultDuration" min="30" max="365" placeholder="30-365" required>
+                                <small>Min: 30 days, Max: 365 days</small>
+                            </div>
+                            <div class="decay-reduction">
+                                <p>Decay Reduction: <span id="decayReduction">0%</span></p>
+                                <p class="objective-note" style="font-size: 0.875rem; color: var(--caption-color); margin-top: 0.5em;">Tokens will be locked toward: <span id="objectiveDisplay">-</span></p>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Lock Tokens</button>
+                        </form>
+                    </div>
+
+                    <!-- My Vaults Tab -->
+                    <div id="myvaultsTab" class="tab-pane" style="display: none;">
+                        <h3>My Wellness Vaults</h3>
+                        <div id="vaultsList" class="vaults-list">
+                            <p class="empty-state">No active vaults</p>
+                        </div>
+                    </div>
+
+                    <!-- Exchange Tab -->
+                    <div id="exchangeTab" class="tab-pane" style="display: none;">
+                        <h3>Token Exchange</h3>
+                        <div class="exchange-rates">
+                            <h4>Current Rates (per token)</h4>
+                            <div id="exchangeRates" class="rates-grid">
+                                <div class="rate-item">RHY: <span>0.00</span> USDC</div>
+                                <div class="rate-item">HLN: <span>0.00</span> USDC</div>
+                                <div class="rate-item">FDN: <span>0.00</span> USDC</div>
+                                <div class="rate-item">CTL: <span>0.00</span> USDC</div>
+                            </div>
+                        </div>
+                        <form id="exchangeForm">
+                            <div class="form-group">
+                                <label>Operation</label>
+                                <select id="exchangeOperation">
+                                    <option value="buy">Buy Autophage Tokens with USDC</option>
+                                    <option value="sell">Sell Autophage Tokens for USDC</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Token Species</label>
+                                <select id="exchangeSpecies">
+                                    <option value="0">Rhythm (RHY)</option>
+                                    <option value="1">Healing (HLN)</option>
+                                    <option value="2">Foundation (FDN)</option>
+                                    <option value="3">Catalyst (CTL)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Amount <button type="button" class="btn-small" onclick="app.setMaxExchangeAmount()">Max</button></label>
+                                <input type="number" id="exchangeAmount" placeholder="0.0" step="0.01" required>
+                                <small id="exchangeEstimate" style="display: none;">Estimated value: $<span id="estimatedValue">0.00</span> USDC</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Execute Exchange</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Health Activities -->
+            <section class="card" id="healthActivities">
+                <h2>Health Activities</h2>
+                <div class="activity-grid">
+                    <div class="activity-card">
+                        <h3>Exercise</h3>
+                        <p>Earn Rhythm tokens</p>
+                        <button class="btn btn-activity" data-activity="0">Log Activity</button>
+                    </div>
+                    <div class="activity-card">
+                        <h3>Therapy</h3>
+                        <p>Earn Healing tokens</p>
+                        <button class="btn btn-activity" data-activity="1">Log Activity</button>
+                    </div>
+                    <div class="activity-card">
+                        <h3>Nutrition</h3>
+                        <p>Earn Foundation tokens</p>
+                        <button class="btn btn-activity" data-activity="2">Log Activity</button>
+                    </div>
+                    <div class="activity-card">
+                        <h3>Checkup</h3>
+                        <p>Earn mixed tokens</p>
+                        <button class="btn btn-activity" data-activity="3">Log Activity</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Transaction History -->
+            <section class="card" id="transactionHistory">
+                <h2>Recent Transactions</h2>
+                <div id="txList" class="tx-list">
+                    <p class="empty-state">No transactions yet</p>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer>
+            <div class="container">
+                <p class="disclaimer">Smart contracts for demonstration purposes. Not audited for production use.</p>
+                <p>© 2025 0x42 Research. All rights reserved. <a href="https://attest.ink" 
+                   target="_blank" 
+                   rel="noopener" 
+                   title="Built with AI assistance"
+                   class="ai-badge-inline"
+                   style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; margin-left: 8px; border-radius: 10px !important; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #888; text-decoration: none; font-size: 10px; opacity: 0.6; transition: all 0.2s; vertical-align: middle; -webkit-tap-highlight-color: transparent;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12C16 14.2091 14.2091 16 12 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    <circle cx="12" cy="12" r="2" fill="currentColor"/>
+                    <path d="M12 6V8M12 16V18M18 12H16M8 12H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  </svg>
+                  <span class="ai-badge-text">AI</span>
+                </a></p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Activity Modal -->
+    <div id="activityModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Log Health Activity</h2>
+            <form id="activityForm">
+                <input type="hidden" id="activityType">
+                <div class="form-group">
+                    <label>Duration (minutes)</label>
+                    <input type="number" id="activityDuration" min="1" max="180" placeholder="30" required>
+                </div>
+                <div class="form-group">
+                    <label>Intensity (1-100)</label>
+                    <input type="range" id="activityIntensity" min="1" max="100" value="50">
+                    <span id="intensityValue">50</span>
+                </div>
+                <div class="reward-preview">
+                    <p>Estimated Reward: <span id="rewardEstimate">0.00</span> tokens</p>
+                    <p style="font-size: 0.875rem; color: var(--caption-color);">≈ $<span id="rewardUsdcEstimate">0.00</span> USDC</p>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Activity</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer"></div>
+
+    <!-- Wallet Management Modal -->
+    <div id="walletModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeWalletModal()">&times;</span>
+            <h2>Manage Wallets</h2>
+            <div class="wallet-list" id="walletList">
+                <!-- Wallets will be populated here -->
+            </div>
+            <div class="wallet-actions">
+                <button class="btn btn-primary" onclick="createTestWallet()">Create New Test Wallet</button>
+                <button class="btn btn-secondary" onclick="exportWallets()">Export All</button>
+                <button class="btn btn-secondary" onclick="importWallets()">Import</button>
+                <button class="btn btn-secondary" onclick="app.clearAllData()" style="margin-top: 1em; border-color: #d33;">Clear All Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/ethers-helper.js"></script>
+    <script src="js/wallet-manager.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/contracts.js"></script>
+    <script src="js/app.js"></script>
+    
+    <script>
+        // Smooth AI badge animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const aiBadge = document.querySelector('.ai-badge-inline');
+            if (aiBadge) {
+                const badgeText = aiBadge.querySelector('.ai-badge-text');
+                
+                aiBadge.addEventListener('mouseenter', function() {
+                    if (!('ontouchstart' in window)) {
+                        badgeText.textContent = 'Built with AI';
+                    }
+                });
+                
+                aiBadge.addEventListener('mouseleave', function() {
+                    if (!('ontouchstart' in window)) {
+                        badgeText.textContent = 'AI';
+                    }
+                });
+            }
+        });
+        
+        // Add keyboard shortcut for clearing data
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + Shift + R to clear all data
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') {
+                e.preventDefault();
+                if (window.app && window.app.clearAllData) {
+                    window.app.clearAllData();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

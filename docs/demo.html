@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autophage Protocol - Demo Dashboard</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <!-- Theme initialization (before styles to prevent flash) -->
+    <script src="js/theme.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Mode Toggle -->
+        <button class="mode-toggle" onclick="toggleTheme()">D</button>
+        
+        <!-- Header -->
+        <header>
+            <div class="container">
+                <div class="header-content">
+                    <div>
+                        <h1>Autophage Protocol</h1>
+                        <p class="tagline">A metabolic economy where value must flow to exist</p>
+                    </div>
+                </div>
+                <div class="wallet-section">
+                    <div id="walletInfo" class="wallet-info">
+                        <span class="address">Demo Mode</span>
+                        <span class="network">Simulated</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container">
+            <!-- Token Overview -->
+            <section class="card" id="tokenOverview">
+                <h2>Token Balances</h2>
+                <div class="token-grid">
+                    <div class="token-card rhythm">
+                        <h3>Rhythm (RHY)</h3>
+                        <p class="balance" id="balance-0">1000.00</p>
+                        <p class="decay-rate">5% daily decay</p>
+                        <p class="use-case">Exercise & Medication</p>
+                    </div>
+                    <div class="token-card healing">
+                        <h3>Healing (HLN)</h3>
+                        <p class="balance" id="balance-1">500.00</p>
+                        <p class="decay-rate">0.75% daily decay</p>
+                        <p class="use-case">Therapy & Recovery</p>
+                    </div>
+                    <div class="token-card foundation">
+                        <h3>Foundation (FDN)</h3>
+                        <p class="balance" id="balance-2">2000.00</p>
+                        <p class="decay-rate">0.1% daily decay</p>
+                        <p class="use-case">Preventive Care</p>
+                    </div>
+                    <div class="token-card catalyst">
+                        <h3>Catalyst (CTL)</h3>
+                        <p class="balance" id="balance-3">100.00</p>
+                        <p class="decay-rate">2-10% dynamic</p>
+                        <p class="use-case">Marketplace</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Simple Actions -->
+            <section class="card" id="simpleActions">
+                <h2>🎮 Try These Actions</h2>
+                <div class="demo-actions">
+                    <button class="btn btn-primary" onclick="simulateActivity()">🏃 Log Exercise (+50 RHY)</button>
+                    <button class="btn btn-primary" onclick="simulateTransfer()">💸 Transfer Tokens</button>
+                    <button class="btn btn-primary" onclick="simulateVault()">🔒 Lock in Vault</button>
+                    <button class="btn btn-primary" onclick="simulateTimePass()">⏰ Fast Forward 1 Day</button>
+                    <button class="btn btn-secondary" onclick="resetDemo()">🔄 Reset Demo</button>
+                </div>
+            </section>
+
+            <!-- Activity Log -->
+            <section class="card" id="activityLog">
+                <h2>Activity Log</h2>
+                <div id="logList" class="tx-list">
+                    <p class="empty-state">Try some actions above!</p>
+                </div>
+            </section>
+
+            <!-- Info Section -->
+            <section class="card" id="infoSection">
+                <h2>About This Demo</h2>
+                <p>This is a simplified demo of the Autophage Protocol. In the real system:</p>
+                <ul style="margin-top: 1rem; color: var(--text-secondary);">
+                    <li>Tokens decay automatically based on blockchain timestamps</li>
+                    <li>Health activities are verified through zero-knowledge proofs</li>
+                    <li>All transactions happen on the blockchain</li>
+                    <li>Healthcare claims can be submitted and processed</li>
+                </ul>
+                <p style="margin-top: 1rem;">
+                    <a href="index.html" class="btn btn-primary">Try Full Version</a>
+                    <a href="https://github.com/97115104/autophage-smart-contracts" target="_blank" class="btn btn-secondary">View Code</a>
+                </p>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer>
+            <div class="container">
+                <p>Autophage Protocol · <a href="https://autophage.xyz" target="_blank">autophage.xyz</a></p>
+                <p class="disclaimer">Demo simulation - No blockchain required</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer"></div>
+
+    <script>
+        // Demo state
+        let balances = {
+            0: 1000.00,  // RHY
+            1: 500.00,   // HLN
+            2: 2000.00,  // FDN
+            3: 100.00    // CTL
+        };
+        
+        let daysPassed = 0;
+        let activities = [];
+        
+        const species = ['RHY', 'HLN', 'FDN', 'CTL'];
+        const decayRates = [0.05, 0.0075, 0.001, 0.05];
+        
+        function updateBalances() {
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`balance-${i}`).textContent = balances[i].toFixed(2);
+            }
+        }
+        
+        function addActivity(message) {
+            activities.unshift({
+                message,
+                time: new Date().toLocaleTimeString()
+            });
+            updateActivityLog();
+            showToast(message, 'success');
+        }
+        
+        function updateActivityLog() {
+            const logList = document.getElementById('logList');
+            if (activities.length === 0) {
+                logList.innerHTML = '<p class="empty-state">Try some actions above!</p>';
+                return;
+            }
+            
+            logList.innerHTML = activities.slice(0, 10).map(activity => `
+                <div class="tx-item">
+                    <div class="tx-type">${activity.message}</div>
+                    <div class="tx-time">${activity.time}</div>
+                </div>
+            `).join('');
+        }
+        
+        function simulateActivity() {
+            balances[0] += 50; // Add 50 RHY for exercise
+            addActivity('🏃 Completed 30-min workout: +50 RHY');
+            updateBalances();
+        }
+        
+        function simulateTransfer() {
+            if (balances[0] >= 10) {
+                balances[0] -= 10;
+                addActivity('💸 Transferred 10 RHY to Alice');
+                updateBalances();
+            } else {
+                showToast('Insufficient RHY balance!', 'error');
+            }
+        }
+        
+        function simulateVault() {
+            if (balances[0] >= 100) {
+                balances[0] -= 100;
+                addActivity('🔒 Locked 100 RHY in vault for 30 days (reduced decay)');
+                updateBalances();
+            } else {
+                showToast('Need at least 100 RHY to lock!', 'error');
+            }
+        }
+        
+        function simulateTimePass() {
+            daysPassed++;
+            
+            // Apply decay to all balances
+            for (let i = 0; i < 4; i++) {
+                const decayed = balances[i] * decayRates[i];
+                balances[i] = Math.max(0, balances[i] - decayed);
+            }
+            
+            addActivity(`⏰ Fast forwarded 1 day (Day ${daysPassed})`);
+            updateBalances();
+            
+            // Show decay amounts
+            setTimeout(() => {
+                showToast(`Tokens decayed: RHY -${(balances[0] * 0.05).toFixed(2)}, HLN -${(balances[1] * 0.0075).toFixed(2)}`, 'info');
+            }, 500);
+        }
+        
+        function resetDemo() {
+            balances = { 0: 1000.00, 1: 500.00, 2: 2000.00, 3: 100.00 };
+            daysPassed = 0;
+            activities = [];
+            updateBalances();
+            updateActivityLog();
+            showToast('Demo reset to initial state', 'info');
+        }
+        
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <span>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+                <span>${message}</span>
+            `;
+            
+            document.getElementById('toastContainer').appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
+        // Initialize demo
+        updateBalances();
+        
+        // Initialize
+        updateBalances();
+    </script>
+</body>
+</html>

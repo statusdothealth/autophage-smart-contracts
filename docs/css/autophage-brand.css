@@ -1,0 +1,686 @@
+/* Autophage Brand Colors and Typography - LaTeX Style */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;600;700&display=swap');
+
+:root {
+    /* Light mode (LaTeX style) */
+    --paper-bg: #f5f5f5;
+    --text-color: #1a1a1a;
+    --link-color: #1a1a1a;
+    --link-visited: #1a1a1a;
+    --rule-color: #333333;
+    --caption-color: #666666;
+    --math-color: #1a1a1a;
+    
+    /* Species Token Colors (subtle academic) */
+    --color-rhythm: #666666;
+    --color-healing: #666666;
+    --color-foundation: #666666;
+    --color-catalyst: #666666;
+    
+    /* LaTeX dimensions */
+    --page-width: 8.5in;
+    --ui-width: 1400px; /* Wider for UI components */
+    --margin-top: 1in;
+    --margin-bottom: 1in;
+    --line-height: 1.4;
+    --par-indent: 0;
+    --par-skip: 0.5em;
+    
+    /* Spacing */
+    --space-xs: 0.5em;
+    --space-sm: 1em;
+    --space-md: 1.5em;
+    --space-lg: 2em;
+    --space-xl: 3em;
+    
+    /* Border Radius (minimal) */
+    --radius-sm: 2px;
+    --radius-md: 2px;
+    --radius-lg: 2px;
+    --radius-xl: 2px;
+    
+    /* Transitions */
+    --transition: 150ms ease;
+    --transition-slow: 250ms ease;
+}
+
+/* Dark mode initialization - prevent flash */
+html.dark-mode-init {
+    background: #0a0a0a;
+}
+
+/* Dark mode */
+body.dark-mode,
+html.dark-mode-init body {
+    --paper-bg: #0a0a0a;
+    --text-color: #cccccc;
+    --link-color: #cccccc;
+    --link-visited: #999999;
+    --rule-color: #333333;
+    --caption-color: #999999;
+    --math-color: #cccccc;
+}
+
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'JetBrains Mono', 'Source Code Pro', 'Courier New', Courier, monospace;
+    font-size: 10pt;
+    line-height: var(--line-height);
+    color: var(--text-color);
+    background: var(--paper-bg);
+    text-align: justify;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+    margin: 0;
+    padding: 0;
+}
+
+/* Page layout */
+.latex-document {
+    max-width: var(--page-width);
+    margin: var(--margin-top) auto var(--margin-bottom) auto;
+    padding: 0 1in;
+    background: var(--paper-bg);
+}
+
+/* Container for smart contracts UI - wider for desktop */
+.container {
+    max-width: var(--ui-width);
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 600;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    text-align: left;
+}
+
+h1 { 
+    font-size: 14pt; 
+    font-weight: 700; 
+}
+
+h2 { 
+    font-size: 12pt; 
+    font-weight: 600; 
+}
+
+h3 { 
+    font-size: 11pt; 
+    font-weight: 600; 
+}
+
+h4 { 
+    font-size: 10pt; 
+    font-style: italic; 
+    font-weight: 600; 
+}
+
+/* Bold text uses Inter for better readability */
+strong, b {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 600;
+}
+
+/* Paragraphs */
+p {
+    text-indent: var(--par-indent);
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
+p + p {
+    margin-top: var(--par-skip);
+}
+
+/* Header Styles */
+header {
+    background: var(--paper-bg);
+    padding: 1em 0 0.5em 0;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 2em;
+    flex-wrap: wrap;
+}
+
+.header-content h1 {
+    font-size: 17pt;
+    font-weight: bold;
+    margin: 0;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.tagline {
+    font-size: 10pt;
+    color: var(--caption-color);
+    margin-top: 0.3em;
+    font-style: italic;
+}
+
+/* Remove logo orb - not LaTeX style */
+.logo-orb {
+    display: none;
+}
+
+/* Card Styles - LaTeX Box */
+.card {
+    border: 0.4pt solid var(--rule-color);
+    padding: 1.5em;
+    margin: 1em 0;
+    background: var(--paper-bg);
+}
+
+/* Token Cards - Academic Style */
+.token-card {
+    border: 0.4pt solid var(--rule-color);
+    padding: 1em;
+    text-align: left;
+    background: var(--paper-bg);
+}
+
+.token-card h3 {
+    font-size: 11pt;
+    margin-bottom: 0.5em;
+}
+
+.token-card .balance {
+    font-size: 14pt;
+    font-weight: bold;
+    font-family: 'JetBrains Mono', monospace;
+    margin: 0.5em 0;
+}
+
+.token-card .decay-rate {
+    font-size: 9pt;
+    color: var(--caption-color);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.token-card .use-case {
+    font-size: 9pt;
+    color: var(--caption-color);
+    margin-top: 0.25em;
+}
+
+.token-card .token-metrics {
+    margin-top: 0.5em;
+    padding-top: 0.5em;
+    border-top: 0.4pt solid var(--rule-color);
+}
+
+.token-card .token-lifetime,
+.token-card .daily-loss {
+    font-size: 9pt;
+    color: var(--text-color);
+    margin: 0.25em 0;
+    font-weight: 600;
+}
+
+.token-card .lifetime-value,
+.token-card .loss-value {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--caption-color);
+    font-weight: normal;
+}
+
+.token-card .usage-suggestion {
+    font-size: 8pt;
+    color: var(--caption-color);
+    margin-top: 0.5em;
+    font-style: italic;
+}
+
+.token-card .suggestion-text {
+    font-style: normal;
+}
+
+/* Token Grid */
+.token-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5em;
+    margin-top: 1em;
+}
+
+/* Button Styles - LaTeX exact copy */
+button {
+    font-family: 'Computer Modern Sans', sans-serif;
+    font-size: 11pt;
+    padding: 6px 16px;
+    background: var(--paper-bg);
+    color: var(--text-color);
+    border: 1px solid var(--rule-color);
+    cursor: pointer;
+    margin-top: 0.5em;
+    transition: all 0.2s;
+}
+
+button:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+}
+
+/* Small buttons */
+.small-button,
+.btn-small {
+    font-family: 'Computer Modern Sans', sans-serif;
+    font-size: 10pt;
+    padding: 4px 12px;
+    background: var(--paper-bg);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    cursor: pointer;
+    min-width: 30px;
+    transition: all 0.2s;
+}
+
+.small-button:hover,
+.btn-small:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+}
+
+/* Dark mode button fixes */
+body.dark-mode button {
+    background: var(--paper-bg);
+    color: var(--text-color);
+    border-color: var(--rule-color);
+}
+
+body.dark-mode button:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+}
+
+body.dark-mode .small-button,
+body.dark-mode .btn-small {
+    background: var(--paper-bg);
+    color: var(--text-color);
+    border-color: var(--text-color);
+}
+
+body.dark-mode .small-button:hover,
+body.dark-mode .btn-small:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+}
+
+.btn {
+    font-family: 'Computer Modern Sans', sans-serif;
+    font-size: 11pt;
+    padding: 6px 16px;
+    background: var(--paper-bg);
+    color: var(--text-color);
+    border: 1px solid var(--rule-color);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.btn:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    border-color: var(--text-color);
+}
+
+.btn-secondary {
+    border-color: var(--caption-color);
+}
+
+body.dark-mode .btn {
+    background: var(--paper-bg);
+    color: var(--text-color);
+    border-color: var(--rule-color);
+}
+
+body.dark-mode .btn:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 1.25em;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.25em;
+    font-size: 10pt;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.5em;
+    border: 0.4pt solid var(--rule-color);
+    background: var(--paper-bg);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 10pt;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--text-color);
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 1.5em;
+    margin-bottom: 1.5em;
+    border-bottom: 0.4pt solid var(--rule-color);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tab {
+    background: transparent;
+    border: none;
+    padding: 0.5em 0;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--caption-color);
+    position: relative;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -0.4pt;
+}
+
+.tab:hover {
+    color: var(--text-color);
+}
+
+.tab.active {
+    color: var(--text-color);
+    border-bottom-color: var(--text-color);
+}
+
+/* Activity Cards */
+.activity-card {
+    border: 0.4pt solid var(--rule-color);
+    padding: 1em;
+    text-align: center;
+}
+
+.activity-card h3 {
+    font-size: 12pt;
+    margin-bottom: 0.25em;
+}
+
+.activity-card p {
+    color: var(--caption-color);
+    margin-bottom: 0.5em;
+}
+
+/* Activity Grid */
+.activity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5em;
+    margin-top: 1em;
+}
+
+/* Mode Toggle */
+.mode-toggle {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    font-family: Georgia, serif;
+    font-size: 10px;
+    background: var(--paper-bg);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    padding: 1px 4px;
+    cursor: pointer;
+    z-index: 1000;
+    border-radius: 2px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.mode-toggle:hover {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+/* Toast Notifications */
+#toastContainer {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+.toast {
+    background: var(--paper-bg);
+    border: 0.4pt solid var(--rule-color);
+    padding: 0.5em 1em;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    min-width: 300px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.toast.success {
+    border-left: 2pt solid var(--text-color);
+}
+
+.toast.error {
+    border-left: 2pt solid var(--rule-color);
+}
+
+.toast.info {
+    border-left: 2pt solid var(--caption-color);
+}
+
+/* Footer */
+footer {
+    margin-top: 3em;
+    padding: 1.5em 0;
+    border-top: 0.4pt solid var(--rule-color);
+    text-align: left;
+    font-size: 9pt;
+    color: var(--caption-color);
+}
+
+footer a {
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+/* Desktop specific adjustments */
+@media (min-width: 1024px) {
+    .token-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .activity-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .tabs {
+        justify-content: flex-start;
+        gap: 2em;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5em;
+    }
+    
+    /* Wider forms on desktop */
+    .tab-content form {
+        max-width: 600px;
+    }
+    
+    .card {
+        padding: 2em;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    :root {
+        --page-width: 100%;
+        --margin-top: 0;
+        --margin-bottom: 0;
+    }
+    
+    body {
+        font-size: 9pt;
+    }
+    
+    .container {
+        padding: 0 0.75rem;
+        max-width: 100%;
+    }
+    
+    header {
+        padding: 0.75em 0;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1em;
+    }
+    
+    .header-content h1 {
+        font-size: 14pt;
+    }
+    
+    .tagline {
+        font-size: 9pt;
+    }
+    
+    .wallet-section {
+        width: 100%;
+        margin-top: 0.5em;
+    }
+    
+    .wallet-controls {
+        width: 100%;
+    }
+    
+    .wallet-container {
+        padding-top: 0.5em;
+        padding-bottom: 0.5em;
+    }
+    
+    h1 { font-size: 12pt; }
+    
+    /* System metrics on mobile */
+    .metrics-grid {
+        grid-template-columns: 1fr;
+        gap: 1em;
+    }
+    
+    /* Token cards on mobile */
+    .token-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75em;
+    }
+    
+    /* Cards spacing */
+    .card {
+        padding: 1em;
+        margin: 0.75em 0;
+    }
+    h2 { font-size: 11pt; }
+    h3 { font-size: 10pt; }
+    h4 { font-size: 9pt; }
+    
+    .token-grid,
+    .activity-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .tabs {
+        flex-wrap: wrap;
+        gap: 0.5em;
+    }
+    
+    .tab {
+        padding: 0.5em 1em;
+        font-size: 9pt;
+    }
+    
+    #toastContainer {
+        top: 1rem;
+        right: 1rem;
+        left: 1rem;
+    }
+    
+    .toast {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .mode-toggle {
+        top: 10px;
+        right: 10px;
+        font-size: 9px;
+        padding: 1px 3px;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Remove all rounded corners for LaTeX aesthetic */
+* {
+    border-radius: 0 !important;
+}

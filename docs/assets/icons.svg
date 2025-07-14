@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <defs>
+    <!-- Document/Page Icon -->
+    <symbol id="icon-document" viewBox="0 0 24 24">
+      <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z" fill="currentColor"/>
+      <path d="M14 2v6h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <line x1="8" y1="13" x2="16" y2="13" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="8" y1="17" x2="16" y2="17" stroke="currentColor" stroke-width="1.5"/>
+    </symbol>
+    
+    <!-- Star Icon -->
+    <symbol id="icon-star" viewBox="0 0 24 24">
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+    </symbol>
+    
+    <!-- Check Mark Icon -->
+    <symbol id="icon-check" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    
+    <!-- Green Check Icon -->
+    <symbol id="icon-check-green" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" fill="#2ecc71" stroke="#27ae60" stroke-width="2"/>
+      <path d="M9 12l2 2 4-4" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    
+    <!-- Red X Icon -->
+    <symbol id="icon-x-red" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" fill="#e74c3c" stroke="#c0392b" stroke-width="2"/>
+      <path d="M15 9l-6 6M9 9l6 6" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+    
+    <!-- X Mark Icon -->
+    <symbol id="icon-x" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+    
+    <!-- Warning Icon -->
+    <symbol id="icon-warning" viewBox="0 0 24 24">
+      <path d="M12 2L2 20h20L12 2z" fill="#f39c12" stroke="#e67e22" stroke-width="1" stroke-linejoin="round"/>
+      <path d="M12 9v4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="12" cy="17" r="1" fill="white"/>
+    </symbol>
+    
+    <!-- Game Controller Icon -->
+    <symbol id="icon-game" viewBox="0 0 24 24">
+      <rect x="3" y="8" width="18" height="10" rx="2" fill="currentColor"/>
+      <path d="M7 11h2M8 10v2M15 11h2M16 12.5a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zM18 10.5a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1z" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+    </symbol>
+    
+    <!-- Bar Chart Icon -->
+    <symbol id="icon-chart" viewBox="0 0 24 24">
+      <rect x="4" y="14" width="3" height="6" fill="currentColor"/>
+      <rect x="10.5" y="10" width="3" height="10" fill="currentColor"/>
+      <rect x="17" y="6" width="3" height="14" fill="currentColor"/>
+      <line x1="2" y1="21" x2="22" y2="21" stroke="currentColor" stroke-width="2"/>
+    </symbol>
+    
+    <!-- Crossed Swords Icon -->
+    <symbol id="icon-swords" viewBox="0 0 24 24">
+      <line x1="5" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"/>
+      <line x1="19" y1="5" x2="5" y2="19" stroke="currentColor" stroke-width="2"/>
+      <circle cx="5" cy="5" r="2" fill="currentColor"/>
+      <circle cx="19" cy="5" r="2" fill="currentColor"/>
+      <circle cx="5" cy="19" r="2" fill="currentColor"/>
+      <circle cx="19" cy="19" r="2" fill="currentColor"/>
+    </symbol>
+    
+    <!-- Python/Code Icon -->
+    <symbol id="icon-python" viewBox="0 0 24 24">
+      <path d="M5 7 L 9 12 L 5 17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="12" y1="17" x2="19" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+    
+    <!-- Money Bag Icon -->
+    <symbol id="icon-money" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
+      <text x="12" y="16" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="currentColor" font-weight="bold">$</text>
+    </symbol>
+    
+    <!-- Fuel Pump Icon -->
+    <symbol id="icon-fuel" viewBox="0 0 24 24">
+      <rect x="5" y="8" width="8" height="12" rx="1" fill="none" stroke="currentColor" stroke-width="2"/>
+      <rect x="7" y="10" width="4" height="3" fill="currentColor"/>
+      <path d="M13 11 L 16 11 L 16 18" fill="none" stroke="currentColor" stroke-width="2"/>
+      <circle cx="16" cy="9" r="1.5" fill="currentColor"/>
+      <path d="M7 8 L 7 5 L 11 5 L 11 8" fill="none" stroke="currentColor" stroke-width="2"/>
+    </symbol>
+    
+    <!-- Coin Icon -->
+    <symbol id="icon-coin" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
+      <circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="1"/>
+      <text x="12" y="16" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="currentColor" font-weight="bold">A</text>
+    </symbol>
+    
+    <!-- Building/Bank Icon -->
+    <symbol id="icon-building" viewBox="0 0 24 24">
+      <path d="M12 3 L 3 8 L 3 9 L 21 9 L 21 8 Z" fill="currentColor"/>
+      <rect x="5" y="11" width="2" height="8" fill="currentColor"/>
+      <rect x="9" y="11" width="2" height="8" fill="currentColor"/>
+      <rect x="13" y="11" width="2" height="8" fill="currentColor"/>
+      <rect x="17" y="11" width="2" height="8" fill="currentColor"/>
+      <rect x="3" y="20" width="18" height="2" fill="currentColor"/>
+    </symbol>
+    
+    <!-- Lock Icon -->
+    <symbol id="icon-lock" viewBox="0 0 24 24">
+      <rect x="6" y="11" width="12" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M8 11 L 8 7 A 4 4 0 0 1 16 7 L 16 11" fill="none" stroke="currentColor" stroke-width="2"/>
+      <circle cx="12" cy="16" r="1" fill="currentColor"/>
+    </symbol>
+    
+    <!-- Ballot Box Icon -->
+    <symbol id="icon-ballot" viewBox="0 0 24 24">
+      <rect x="6" y="4" width="12" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/>
+      <rect x="9" y="7" width="6" height="2" fill="currentColor"/>
+      <rect x="9" y="11" width="6" height="2" fill="currentColor"/>
+      <path d="M9 16 L 11 18 L 15 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+  </defs>
+</svg>
