@@ -158,14 +158,6 @@ python3 -m http.server 8000
 # Visit http://localhost:8000
 ```
 
-Features:
-- 🎮 **Demo Mode** - Try without a wallet
-- 💳 **MetaMask Integration** - Full Web3 support
-- 📱 **Mobile Friendly** - Responsive design
-- 📊 **Live Updates** - Real-time balance tracking
-- 🌙 **Dark Mode** - Matches autophage.xyz branding
-- 🎨 **Brand Consistency** - Same design as main site
-
 ### 2. Run the Demo (Recommended First Step)
 
 The easiest way to understand the protocol is to run the automated demo:
