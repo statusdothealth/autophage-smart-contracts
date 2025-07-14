@@ -143,7 +143,7 @@
                 <div class="usdc-balance" style="margin-bottom: 1em; padding: 1em; border: 0.4pt solid var(--rule-color); background: var(--paper-bg);">
                     <h3 style="font-size: 11pt; margin: 0 0 0.5em 0;">USDC Balance</h3>
                     <p style="font-size: 14pt; font-weight: bold; font-family: 'JetBrains Mono', monospace; margin: 0;">$<span id="usdcBalance">0.00</span></p>
-                    <p style="font-size: 9pt; color: var(--caption-color); margin: 0.25em 0 0 0;">Stablecoin for exchanges</p>
+                    <p style="font-size: 9pt; color: var(--caption-color); margin: 0.25em 0 0 0;">Stablecoin for marketplace transactions</p>
                 </div>
                 <div class="token-grid">
                     <div class="token-card rhythm">
@@ -195,6 +195,18 @@
                         </div>
                     </div>
                 </div>
+                <div style="margin-top: 1em; padding: 0.75em; background: rgba(0, 0, 0, 0.02); border-left: 3px solid var(--rule-color);">
+                    <p style="margin: 0; font-size: 0.875rem; color: var(--caption-color);">
+                        Tokens earned today: 
+                        <span id="dailyRHY" style="font-weight: 600; color: #ef4444;">0</span> RHY, 
+                        <span id="dailyHLN" style="font-weight: 600; color: #10b981;">0</span> HLN, 
+                        <span id="dailyFDN" style="font-weight: 600; color: #3b82f6;">0</span> FDN, 
+                        <span id="dailyCTL" style="font-weight: 600; color: #f59e0b;">0</span> CTL
+                        <span style="color: var(--caption-color); margin-left: 0.5em;">
+                            (≈ $<span id="dailyUSDC" style="font-weight: 600;">0.00</span> USDC)
+                        </span>
+                    </p>
+                </div>
             </section>
 
             <!-- Token Operations -->
@@ -205,7 +217,6 @@
                     <button class="tab" data-tab="transfer">Transfer</button>
                     <button class="tab" data-tab="vault">Wellness Vault</button>
                     <button class="tab" data-tab="myvaults">My Vaults</button>
-                    <button class="tab" data-tab="exchange">Exchange</button>
                 </div>
                 
                 <div class="tab-content">
@@ -321,43 +332,6 @@
                         </div>
                     </div>
 
-                    <!-- Exchange Tab -->
-                    <div id="exchangeTab" class="tab-pane" style="display: none;">
-                        <h3>Token Exchange</h3>
-                        <div class="exchange-rates">
-                            <h4>Current Rates (per token)</h4>
-                            <div id="exchangeRates" class="rates-grid">
-                                <div class="rate-item">RHY: <span>0.00</span> USDC</div>
-                                <div class="rate-item">HLN: <span>0.00</span> USDC</div>
-                                <div class="rate-item">FDN: <span>0.00</span> USDC</div>
-                                <div class="rate-item">CTL: <span>0.00</span> USDC</div>
-                            </div>
-                        </div>
-                        <form id="exchangeForm">
-                            <div class="form-group">
-                                <label>Operation</label>
-                                <select id="exchangeOperation">
-                                    <option value="buy">Buy Autophage Tokens with USDC</option>
-                                    <option value="sell">Sell Autophage Tokens for USDC</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Token Species</label>
-                                <select id="exchangeSpecies">
-                                    <option value="0">Rhythm (RHY)</option>
-                                    <option value="1">Healing (HLN)</option>
-                                    <option value="2">Foundation (FDN)</option>
-                                    <option value="3">Catalyst (CTL)</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Amount <button type="button" class="btn-small" onclick="app.setMaxExchangeAmount()">Max</button></label>
-                                <input type="number" id="exchangeAmount" placeholder="0.0" step="0.01" required>
-                                <small id="exchangeEstimate" style="display: none;">Estimated value: $<span id="estimatedValue">0.00</span> USDC</small>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Execute Exchange</button>
-                        </form>
-                    </div>
                 </div>
             </section>
 
@@ -368,22 +342,45 @@
                     <div class="activity-card">
                         <h3>Exercise</h3>
                         <p>Earn Rhythm tokens</p>
+                        <div class="bonus-status" id="bonus-exercise">
+                            <small class="bonus-text">No active bonuses</small>
+                        </div>
                         <button class="btn btn-activity" data-activity="0">Log Activity</button>
                     </div>
                     <div class="activity-card">
                         <h3>Therapy</h3>
                         <p>Earn Healing tokens</p>
+                        <div class="bonus-status" id="bonus-therapy">
+                            <small class="bonus-text">No active bonuses</small>
+                        </div>
                         <button class="btn btn-activity" data-activity="1">Log Activity</button>
                     </div>
                     <div class="activity-card">
                         <h3>Nutrition</h3>
                         <p>Earn Foundation tokens</p>
+                        <div class="bonus-status" id="bonus-nutrition">
+                            <small class="bonus-text">No active bonuses</small>
+                        </div>
                         <button class="btn btn-activity" data-activity="2">Log Activity</button>
                     </div>
                     <div class="activity-card">
                         <h3>Checkup</h3>
                         <p>Earn mixed tokens</p>
+                        <div class="bonus-status" id="bonus-checkup">
+                            <small class="bonus-text">No active bonuses</small>
+                        </div>
                         <button class="btn btn-activity" data-activity="3">Log Activity</button>
+                    </div>
+                    <div class="activity-card full-day">
+                        <h3>Multi-Activity Synergies</h3>
+                        <p>Understanding the wellness multiplier system</p>
+                        <div class="bonus-status" id="bonus-fullday">
+                            <small class="bonus-text">Demonstrate multi-activity bonuses</small>
+                        </div>
+                        <button class="btn btn-primary" id="fullDayDemo">Show Bonus Demo</button>
+                        <small style="display: block; margin-top: 0.5em; font-size: 0.75rem; color: var(--caption-color);">
+                            See <a href="https://autophage.xyz/math#section-2" target="_blank" style="color: #3498db;">Section 2: Bonus Mechanics</a>
+                        </small>
                     </div>
                 </div>
             </section>
@@ -424,6 +421,9 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Log Health Activity</h2>
+            <div style="background: rgba(52, 152, 219, 0.1); padding: 0.75em; margin-bottom: 1em; border-left: 3px solid #3498db; font-size: 0.875rem;">
+                <p style="margin: 0; color: var(--caption-color);">Multiple activity types yield compound bonuses. Maximum 5x multiplier. <a href="https://autophage.xyz/math#section-2" target="_blank" style="color: #3498db;">View bonus calculations</a></p>
+            </div>
             <form id="activityForm">
                 <input type="hidden" id="activityType">
                 <div class="form-group">
@@ -438,6 +438,39 @@
                 <div class="reward-preview">
                     <p>Estimated Reward: <span id="rewardEstimate">0.00</span> tokens</p>
                     <p style="font-size: 0.875rem; color: var(--caption-color);">≈ $<span id="rewardUsdcEstimate">0.00</span> USDC</p>
+                    <div id="potentialBonuses" style="margin-top: 0.5em; font-size: 0.875rem;">
+                        <p style="color: var(--caption-color);">Potential bonuses:</p>
+                        <ul style="margin: 0.25em 0 0 1.5em; list-style: none; padding: 0;">
+                            <li id="timeBonusHint" style="display: none; color: #f39c12; align-items: center;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M12 6V12L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                Time bonus: +25% (6-9am or 6-9pm)
+                            </li>
+                            <li id="comboBonusHint" style="display: none; color: #9b59b6; align-items: center;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+                                    <circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="2"/>
+                                    <circle cx="16" cy="8" r="3" stroke="currentColor" stroke-width="2"/>
+                                    <circle cx="8" cy="16" r="3" stroke="currentColor" stroke-width="2"/>
+                                    <circle cx="16" cy="16" r="3" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                                Complete 2+ activities today: +50%
+                            </li>
+                            <li id="streakBonusHint" style="display: none; color: #2ecc71; align-items: center;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+                                    <path d="M13 2L13.324 6.629C13.4017 7.79816 13.4406 8.38177 13.6845 8.88152C13.8996 9.32101 14.2272 9.69482 14.6357 9.96538C15.1014 10.2724 15.6851 10.3928 16.8524 10.6337L21 11.5L16.8524 12.3663C15.6851 12.6072 15.1014 12.7276 14.6357 13.0346C14.2272 13.3052 13.8996 13.679 13.6845 14.1185C13.4406 14.6182 13.4017 15.2018 13.324 16.371L13 21L12.676 16.371C12.5983 15.2018 12.5594 14.6182 12.3155 14.1185C12.1004 13.679 11.7728 13.3052 11.3643 13.0346C10.8986 12.7276 10.3149 12.6072 9.14764 12.3663L5 11.5L9.14764 10.6337C10.3149 10.3928 10.8986 10.2724 11.3643 9.96538C11.7728 9.69482 12.1004 9.32101 12.3155 8.88152C12.5594 8.38177 12.5983 7.79816 12.676 6.629L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Repeat within 24 hours: +15%
+                            </li>
+                            <li id="fullDayHint" style="display: none; color: #e74c3c; align-items: center;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+                                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Complete all 4 activities: 5x multiplier
+                            </li>
+                        </ul>
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-primary">Submit Activity</button>
             </form>

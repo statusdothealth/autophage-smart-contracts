@@ -247,54 +247,6 @@ class ContractManager {
                 approve: async () => ({ wait: async () => ({}) })
             },
             reservoir: {
-                getExchangeRate: async (species) => {
-                    const rates = ['1.5', '2.0', '5.0', '0.8'];
-                    return ethers.utils.parseEther(rates[species]);
-                },
-                buyAutophageTokens: async (species, amount) => {
-                    // Update the balance when buying tokens
-                    const currentBalance = parseFloat(this.mockBalances[species] || '0');
-                    const usdcAmount = parseFloat(ethers.utils.formatEther(amount));
-                    // Use the exchange rates (USDC per token)
-                    const rates = [1.5, 2.0, 5.0, 0.8];
-                    const tokensReceived = usdcAmount / rates[species];
-                    this.mockBalances[species] = (currentBalance + tokensReceived).toString();
-                    
-                    // Update USDC balance
-                    const currentUSDC = parseFloat(this.mockBalances.usdc || '88.88');
-                    this.mockBalances.usdc = (currentUSDC - usdcAmount).toString();
-                    
-                    this.mockTransactions.push({
-                        type: 'Buy',
-                        species,
-                        amount: ethers.utils.formatEther(amount),
-                        timestamp: Date.now()
-                    });
-                    return { wait: async () => ({ transactionHash: '0xdemo' + Date.now() }) };
-                },
-                sellAutophageTokens: async (species, amount) => {
-                    // Update the balance when selling tokens
-                    const currentBalance = parseFloat(this.mockBalances[species] || '0');
-                    const tokenAmount = parseFloat(ethers.utils.formatEther(amount));
-                    const rates = [1.5, 2.0, 5.0, 0.8];
-                    const usdcReceived = tokenAmount * rates[species];
-                    
-                    if (currentBalance >= tokenAmount) {
-                        this.mockBalances[species] = (currentBalance - tokenAmount).toString();
-                        
-                        // Update USDC balance
-                        const currentUSDC = parseFloat(this.mockBalances.usdc || '88.88');
-                        this.mockBalances.usdc = (currentUSDC + usdcReceived).toString();
-                    }
-                    
-                    this.mockTransactions.push({
-                        type: 'Sell',
-                        species,
-                        amount: ethers.utils.formatEther(amount),
-                        timestamp: Date.now()
-                    });
-                    return { wait: async () => ({ transactionHash: '0xdemo' + Date.now() }) };
-                },
                 calculateMetabolicPrice: async () => ethers.utils.parseEther('0.0023'),
                 getReservoirStats: async () => {
                     // Return mock reservoir stats
@@ -386,52 +338,6 @@ class ContractManager {
         }
     }
 
-    // Get exchange rate
-    async getExchangeRate(species) {
-        try {
-            const rate = await this.contracts.reservoir.getExchangeRate(species);
-            return ethers.utils.formatEther(rate);
-        } catch (error) {
-            console.error('Failed to get exchange rate:', error);
-            return '0.00';
-        }
-    }
-
-    // Buy tokens with USDC
-    async buyTokens(species, usdcAmount) {
-        try {
-            // First approve USDC
-            const approveTx = await this.contracts.mockUSDC.approve(
-                CONTRACT_ADDRESSES.ReservoirContract,
-                ethers.utils.parseEther(usdcAmount.toString())
-            );
-            await approveTx.wait();
-
-            // Then buy tokens
-            const tx = await this.contracts.reservoir.buyAutophageTokens(
-                species,
-                ethers.utils.parseEther(usdcAmount.toString())
-            );
-            return await tx.wait();
-        } catch (error) {
-            console.error('Buy failed:', error);
-            throw error;
-        }
-    }
-
-    // Sell tokens for USDC
-    async sellTokens(species, tokenAmount) {
-        try {
-            const tx = await this.contracts.reservoir.sellAutophageTokens(
-                species,
-                ethers.utils.parseEther(tokenAmount.toString())
-            );
-            return await tx.wait();
-        } catch (error) {
-            console.error('Sell failed:', error);
-            throw error;
-        }
-    }
 
     // Check if user has minter role
     async hasMinterRole(address) {

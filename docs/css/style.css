@@ -911,3 +911,68 @@ body.dark-mode .tx-item:hover {
     margin-top: 0.5em;
     font-style: italic;
 }
+
+/* Bonus Status Display */
+.bonus-status {
+    margin: 0.5em 0;
+    padding: 0.25em 0.5em;
+    background: rgba(0, 0, 0, 0.02);
+    border-left: 2pt solid transparent;
+    transition: all 0.3s;
+}
+
+body.dark-mode .bonus-status {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.bonus-status.active {
+    border-left-color: #2ecc71;
+    background: rgba(46, 204, 113, 0.1);
+}
+
+.bonus-status.time-bonus {
+    border-left-color: #f39c12;
+    background: rgba(243, 156, 18, 0.1);
+}
+
+.bonus-status.combo-bonus {
+    border-left-color: #9b59b6;
+    background: rgba(155, 89, 182, 0.1);
+}
+
+.bonus-text {
+    font-size: 9pt;
+    color: var(--caption-color);
+    font-style: italic;
+}
+
+.bonus-status.active .bonus-text {
+    color: #2ecc71;
+    font-style: normal;
+    font-weight: 600;
+}
+
+.bonus-status.time-bonus .bonus-text {
+    color: #f39c12;
+}
+
+.bonus-status.combo-bonus .bonus-text {
+    color: #9b59b6;
+}
+
+/* Full Day Activity Card */
+.activity-card.full-day {
+    grid-column: span 2;
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.05), rgba(155, 89, 182, 0.05));
+    border: 1pt solid var(--rule-color);
+}
+
+body.dark-mode .activity-card.full-day {
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(155, 89, 182, 0.1));
+}
+
+@media (max-width: 768px) {
+    .activity-card.full-day {
+        grid-column: span 1;
+    }
+}

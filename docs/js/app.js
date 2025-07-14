@@ -6,6 +6,10 @@ class AutophageApp {
         this.currentAccount = null;
         this.updateInterval = null;
         this.transactions = [];
+        this.activityHistory = []; // Track completed activities for bonuses
+        this.lastActivityTime = {}; // Track last activity time by type
+        this.todayCompletedActivities = new Set(); // Track which activities completed today
+        this.dailyEarnings = { 0: 0, 1: 0, 2: 0, 3: 0 }; // Track daily token earnings
     }
 
     async init() {
@@ -35,6 +39,15 @@ class AutophageApp {
         
         // Update last modified date
         this.updateLastModified();
+        
+        // Load activity history from existing transactions
+        this.loadActivityHistoryFromTransactions();
+        
+        // Update bonus displays
+        this.updateAllBonusDisplays();
+        
+        // Update daily earnings
+        this.updateDailyEarnings();
     }
     
     async updateLastModified() {
@@ -100,13 +113,18 @@ class AutophageApp {
         document.getElementById('mintForm').addEventListener('submit', (e) => this.handleMint(e));
         document.getElementById('transferForm').addEventListener('submit', (e) => this.handleTransfer(e));
         document.getElementById('vaultForm').addEventListener('submit', (e) => this.handleVault(e));
-        document.getElementById('exchangeForm').addEventListener('submit', (e) => this.handleExchange(e));
         document.getElementById('activityForm').addEventListener('submit', (e) => this.handleActivity(e));
         
         // Activity buttons
         document.querySelectorAll('.btn-activity').forEach(btn => {
             btn.addEventListener('click', (e) => this.showActivityModal(e.target.dataset.activity));
         });
+        
+        // Full day demo button
+        const fullDayBtn = document.getElementById('fullDayDemo');
+        if (fullDayBtn) {
+            fullDayBtn.addEventListener('click', () => this.demoFullDay());
+        }
         
         // Modal
         document.querySelector('.close').addEventListener('click', () => this.closeModal());
@@ -136,10 +154,6 @@ class AutophageApp {
         
         document.getElementById('activityDuration').addEventListener('input', () => this.updateRewardEstimate());
         
-        // Exchange amount input
-        document.getElementById('exchangeAmount').addEventListener('input', () => this.updateExchangeEstimate());
-        document.getElementById('exchangeSpecies').addEventListener('change', () => this.updateExchangeEstimate());
-        document.getElementById('exchangeOperation').addEventListener('change', () => this.updateExchangeEstimate());
         
         // Multi-activity form
         this.setupMultiActivityListeners();
@@ -404,14 +418,17 @@ AutophageToken address:`;
 
     startBalanceUpdates() {
         this.updateBalances();
-        this.updateExchangeRates();
         this.updateSystemMetrics();
+        this.updateAllBonusDisplays();
+        this.updateDailyEarnings();
         
         // Update every 10 seconds
         this.updateInterval = setInterval(() => {
             this.updateBalances();
-            this.updateExchangeRates();
             this.updateSystemMetrics();
+            // Also update bonus displays as time-based bonuses may change
+            this.updateAllBonusDisplays();
+            this.updateDailyEarnings();
         }, 10000);
     }
 
@@ -465,9 +482,8 @@ AutophageToken address:`;
                     balanceFloat.toFixed(2);
                 
                 // Update USDC value display
-                const exchangeRates = [1.5, 2.0, 5.0, 0.8]; // Exchange rates per token
                 const metabolicPrice = parseFloat(document.getElementById('metabolicPrice')?.textContent || '0.0023');
-                const usdcValue = balanceFloat * exchangeRates[i] * metabolicPrice;
+                const usdcValue = balanceFloat * metabolicPrice;
                 const usdcElement = document.querySelectorAll('.token-card .usdc-amount')[i];
                 if (usdcElement) {
                     usdcElement.textContent = usdcValue.toFixed(2);
@@ -570,7 +586,7 @@ AutophageToken address:`;
                 if (balance < 100) {
                     return 'Build reserves for marketplace participation';
                 } else if (dailyLoss > 10) {
-                    return 'High decay rate - use in marketplace or exchange';
+                    return 'High decay rate - use in marketplace';
                 } else {
                     return 'Ready for marketplace activities';
                 }
@@ -580,24 +596,6 @@ AutophageToken address:`;
         }
     }
 
-    async updateExchangeRates() {
-        if (!this.contractManager.contracts.reservoir) return;
-        
-        const symbols = ['RHY', 'HLN', 'FDN', 'CTL'];
-        const rateElements = document.querySelectorAll('.rate-item span');
-        
-        for (let i = 0; i < 4; i++) {
-            try {
-                const rate = await this.contractManager.getExchangeRate(i);
-                rateElements[i].textContent = parseFloat(rate).toFixed(4);
-            } catch (error) {
-                console.error('Failed to update rate:', error);
-            }
-        }
-        
-        // Also update USDC values for all token balances when rates change
-        await this.updateBalances();
-    }
     
     async updateSystemMetrics() {
         // Check if contracts are initialized
@@ -878,56 +876,6 @@ AutophageToken address:`;
         }
     }
 
-    async handleExchange(e) {
-        e.preventDefault();
-        
-        if (!this.currentAccount) {
-            if (this.promptWalletCreation()) {
-                setTimeout(() => this.handleExchange(e), 500);
-            }
-            return;
-        }
-        
-        const operation = document.getElementById('exchangeOperation').value;
-        const species = parseInt(document.getElementById('exchangeSpecies').value);
-        const amount = document.getElementById('exchangeAmount').value;
-        
-        try {
-            this.showToast(`${operation === 'buy' ? 'Buying' : 'Selling'} tokens...`, 'info');
-            
-            let receipt;
-            if (operation === 'buy') {
-                receipt = await this.contractManager.buyTokens(species, amount);
-            } else {
-                receipt = await this.contractManager.sellTokens(species, amount);
-            }
-            
-            this.addTransaction(operation === 'buy' ? 'Buy' : 'Sell', {
-                species: CONFIG.species[species].symbol,
-                amount,
-                txHash: receipt.transactionHash
-            });
-            
-            this.showToast(`Successfully ${operation === 'buy' ? 'bought' : 'sold'} ${amount} ${CONFIG.species[species].name} tokens!`, 'success');
-            
-            // Reset form and update balances
-            e.target.reset();
-            await this.updateBalances();
-            this.updateExchangeRates();
-            
-            // Sync wallet balances for test wallets
-            if (window.walletManager.getCurrentWallet()?.type === 'test') {
-                const balances = {};
-                for (let i = 0; i < 4; i++) {
-                    const balance = await this.contractManager.getBalance(this.currentAccount, i);
-                    balances[i] = balance;
-                }
-                window.walletManager.updateWalletBalances(this.currentAccount, balances);
-            }
-        } catch (error) {
-            this.showToast('Exchange failed: ' + error.message, 'error');
-        }
-    }
 
     showActivityModal(activityType) {
         if (!this.currentAccount) {
@@ -941,6 +889,9 @@ AutophageToken address:`;
         document.getElementById('activityModal').style.display = 'flex';
         this.updateMultiplierStatus();
         this.updateRewardEstimate();
+        
+        // Update bonus display for this activity
+        this.updateBonusDisplay(activityType);
     }
     
     updateMultiplierStatus() {
@@ -1041,9 +992,8 @@ AutophageToken address:`;
                 totalReward += reward;
                 
                 // Calculate USDC value
-                const exchangeRates = [1.5, 2.0, 5.0, 0.8];
                 const metabolicPrice = parseFloat(document.getElementById('metabolicPrice')?.textContent || '0.0023');
-                totalUSDC += reward * exchangeRates[index] * metabolicPrice;
+                totalUSDC += reward * metabolicPrice;
             }
         });
         
@@ -1073,18 +1023,86 @@ AutophageToken address:`;
         const durationMultiplier = Math.min(duration / 30, 2);
         const intensityMultiplier = intensity / 100;
         
+        // Calculate current bonuses
+        const bonuses = this.calculateBonuses(activityType);
+        
         // Use the current multiplier if available
         const multiplier = this.currentMultiplier || 1;
         
-        const totalReward = baseReward * durationMultiplier * intensityMultiplier * multiplier;
+        const totalReward = baseReward * durationMultiplier * intensityMultiplier * multiplier * bonuses.multiplier;
         
         document.getElementById('rewardEstimate').textContent = totalReward.toFixed(2);
         
         // Calculate USDC value
-        const exchangeRates = [1.5, 2.0, 5.0, 0.8]; // Exchange rates per token
         const metabolicPrice = parseFloat(document.getElementById('metabolicPrice')?.textContent || '0.0023');
-        const usdcValue = totalReward * exchangeRates[activityType] * metabolicPrice;
+        const usdcValue = totalReward * metabolicPrice;
         document.getElementById('rewardUsdcEstimate').textContent = usdcValue.toFixed(2);
+        
+        // Update potential bonus hints
+        this.updatePotentialBonusHints(activityType, bonuses);
+    }
+    
+    updatePotentialBonusHints(activityType, currentBonuses) {
+        // Time bonus hint
+        const hour = new Date().getHours();
+        const inBonusTime = (hour >= 6 && hour < 9) || (hour >= 18 && hour < 21);
+        const timeBonusHint = document.getElementById('timeBonusHint');
+        if (!inBonusTime) {
+            timeBonusHint.style.display = 'block';
+        } else {
+            timeBonusHint.style.display = 'none';
+        }
+        
+        // Combo bonus hint
+        const today = new Date().toDateString();
+        const todayActivities = this.activityHistory.filter(a => 
+            new Date(a.timestamp).toDateString() === today
+        );
+        const uniqueToday = new Set(todayActivities.map(a => a.type)).size;
+        
+        const comboBonusHint = document.getElementById('comboBonusHint');
+        if (uniqueToday < 2) {
+            comboBonusHint.style.display = 'block';
+            if (uniqueToday === 1) {
+                comboBonusHint.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+                    <circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="16" cy="8" r="3" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="8" cy="16" r="3" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="16" cy="16" r="3" stroke="currentColor" stroke-width="2"/>
+                </svg>Complete 1 more activity today: +50%`;
+            }
+        } else {
+            comboBonusHint.style.display = 'none';
+        }
+        
+        // Streak bonus hint
+        const streakBonusHint = document.getElementById('streakBonusHint');
+        if (!currentBonuses.streak && !this.lastActivityTime[activityType]) {
+            streakBonusHint.style.display = 'block';
+        } else {
+            streakBonusHint.style.display = 'none';
+        }
+        
+        // Full day hint
+        const fullDayHint = document.getElementById('fullDayHint');
+        if (uniqueToday < 4) {
+            fullDayHint.style.display = 'block';
+            const remaining = 4 - uniqueToday;
+            fullDayHint.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>Complete ${remaining} more ${remaining === 1 ? 'activity' : 'activities'}: 5x multiplier`;
+        } else {
+            fullDayHint.style.display = 'none';
+        }
+        
+        // Show/hide the entire potential bonuses section
+        const potentialBonuses = document.getElementById('potentialBonuses');
+        const anyHintsVisible = timeBonusHint.style.display === 'block' || 
+                               comboBonusHint.style.display === 'block' || 
+                               streakBonusHint.style.display === 'block' || 
+                               fullDayHint.style.display === 'block';
+        
+        potentialBonuses.style.display = anyHintsVisible ? 'block' : 'none';
     }
 
     async handleActivity(e) {
@@ -1104,14 +1122,25 @@ AutophageToken address:`;
         try {
             this.showToast('Recording activity...', 'info');
             
+            // Track activity for bonuses
+            this.activityHistory.push({
+                type: activityType,
+                timestamp: Date.now(),
+                duration: duration
+            });
+            this.lastActivityTime[activityType] = Date.now();
+            
+            // Calculate bonuses
+            const bonuses = this.calculateBonuses(activityType);
+            
             // Calculate reward with multipliers
             const baseReward = CONFIG.activities[activityType].baseReward;
             const durationMultiplier = Math.min(duration / 30, 2);
             const intensityMultiplier = intensity / 100;
             
-            // Apply the current multiplier
+            // Apply the current multiplier and bonuses
             const multiplier = this.currentMultiplier || 1;
-            const totalReward = baseReward * durationMultiplier * intensityMultiplier * multiplier;
+            const totalReward = baseReward * durationMultiplier * intensityMultiplier * multiplier * bonuses.multiplier;
             
             // Track activity for multipliers
             const today = new Date().toDateString();
@@ -1154,12 +1183,21 @@ AutophageToken address:`;
                 txHash: receipt.transactionHash
             });
             
-            this.showToast(`Earned ${totalReward.toFixed(2)} ${CONFIG.species[activityType].name} tokens!`, 'success');
+            const bonusMessage = bonuses.multiplier > 1 
+                ? ` (${((bonuses.multiplier - 1) * 100).toFixed(0)}% bonus applied)`
+                : '';
+            this.showToast(`Earned ${totalReward.toFixed(2)} ${CONFIG.species[activityType].name} tokens${bonusMessage}`, 'success');
             
             // Close modal and update balances
             this.closeModal();
             e.target.reset();
             this.updateBalances();
+            
+            // Update all bonus displays
+            this.updateAllBonusDisplays();
+            
+            // Update daily earnings
+            this.updateDailyEarnings();
         } catch (error) {
             this.showToast('Activity submission failed: ' + error.message, 'error');
         }
@@ -1299,7 +1337,50 @@ AutophageToken address:`;
         };
         
         this.transactions.unshift(tx);
+        
+        // Track activity completions for bonus calculations
+        if (type === 'Activity Reward' || type === 'Activity') {
+            // Find activity type from details
+            let activityType = -1;
+            
+            // Check activities by name
+            for (let i = 0; i < 4; i++) {
+                if (CONFIG.activities[i].name === details.activity || 
+                    CONFIG.activities[i].name === details.type ||
+                    CONFIG.species[i].name === details.type ||
+                    CONFIG.species[i].symbol === (details.reward?.split(' ')[1] || '')) {
+                    activityType = i;
+                    break;
+                }
+            }
+            
+            if (activityType !== -1) {
+                // Update today's completed activities based on actual transactions
+                const today = new Date().toDateString();
+                const todayTx = this.transactions.filter(t => 
+                    (t.type === 'Activity Reward' || t.type === 'Activity') &&
+                    new Date(t.timestamp).toDateString() === today
+                );
+                
+                this.todayCompletedActivities.clear();
+                todayTx.forEach(t => {
+                    for (let i = 0; i < 4; i++) {
+                        if (CONFIG.activities[i].name === t.details.activity || 
+                            CONFIG.activities[i].name === t.details.type ||
+                            CONFIG.species[i].name === t.details.type ||
+                            CONFIG.species[i].symbol === (t.details.reward?.split(' ')[1] || '')) {
+                            this.todayCompletedActivities.add(i);
+                            break;
+                        }
+                    }
+                });
+            }
+        }
+        
         this.updateTransactionList();
+        
+        // Update daily earnings when new transaction added
+        this.updateDailyEarnings();
     }
 
     updateTransactionList() {
@@ -1383,27 +1464,6 @@ AutophageToken address:`;
         this.updateVaultsList();
     }
     
-    async setMaxExchangeAmount() {
-        const operation = document.getElementById('exchangeOperation').value;
-        const species = parseInt(document.getElementById('exchangeSpecies').value);
-        
-        if (operation === 'sell') {
-            // Get token balance for selling
-            const balance = await this.contractManager.getBalance(this.currentAccount, species);
-            document.getElementById('exchangeAmount').value = parseFloat(balance).toFixed(2);
-        } else {
-            // Get USDC balance for buying
-            try {
-                const usdcBalance = await this.contractManager.getUSDCBalance(this.currentAccount);
-                document.getElementById('exchangeAmount').value = parseFloat(usdcBalance).toFixed(2);
-            } catch (error) {
-                // Use demo value
-                document.getElementById('exchangeAmount').value = '1000.00';
-            }
-        }
-        
-        this.updateExchangeEstimate();
-    }
     
     async setMaxVaultAmount() {
         const species = parseInt(document.getElementById('vaultSpecies').value);
@@ -1418,38 +1478,6 @@ AutophageToken address:`;
         }
     }
     
-    async updateExchangeEstimate() {
-        const amount = parseFloat(document.getElementById('exchangeAmount').value) || 0;
-        const species = parseInt(document.getElementById('exchangeSpecies').value);
-        const operation = document.getElementById('exchangeOperation').value;
-        
-        if (amount > 0) {
-            try {
-                const metabolicPrice = await this.contractManager.getMetabolicPrice();
-                const priceFloat = parseFloat(metabolicPrice);
-                
-                let estimatedValue;
-                if (operation === 'buy') {
-                    // Buying tokens with USDC - amount is USDC, calculate tokens
-                    estimatedValue = amount;
-                } else {
-                    // Selling tokens for USDC - amount is tokens, calculate USDC
-                    estimatedValue = amount * priceFloat;
-                }
-                
-                document.getElementById('estimatedValue').textContent = estimatedValue.toFixed(2);
-                document.getElementById('exchangeEstimate').style.display = 'block';
-            } catch (error) {
-                // Use default metabolic price
-                const defaultPrice = 0.0023;
-                const estimatedValue = operation === 'buy' ? amount : amount * defaultPrice;
-                document.getElementById('estimatedValue').textContent = estimatedValue.toFixed(2);
-                document.getElementById('exchangeEstimate').style.display = 'block';
-            }
-        } else {
-            document.getElementById('exchangeEstimate').style.display = 'none';
-        }
-    }
     
     updateRecipientWalletSelector() {
         const select = document.getElementById('recipientWalletSelect');
@@ -1468,6 +1496,310 @@ AutophageToken address:`;
             option.textContent = `${wallet.name} (${wallet.address.slice(0, 6)}...${wallet.address.slice(-4)})`;
             select.appendChild(option);
         });
+    }
+
+    // Calculate base activity reward
+    calculateActivityReward(activityType, duration, intensity) {
+        const baseReward = CONFIG.activities[activityType].baseReward;
+        const durationMultiplier = Math.min(duration / 30, 2);
+        const intensityMultiplier = intensity / 100;
+        const multiplier = this.currentMultiplier || 1;
+        return baseReward * durationMultiplier * intensityMultiplier * multiplier;
+    }
+
+    // Calculate bonuses for activities
+    calculateBonuses(activityType) {
+        const bonuses = {
+            timeOfDay: false,
+            streak: false,
+            combo: false,
+            multiplier: 1.0
+        };
+        
+        // Time of day bonus (morning 6-9am, evening 6-9pm)
+        const hour = new Date().getHours();
+        if ((hour >= 6 && hour < 9) || (hour >= 18 && hour < 21)) {
+            bonuses.timeOfDay = true;
+            bonuses.multiplier += 0.25;
+        }
+        
+        // Check if multiple activities completed today using real transaction data
+        const today = new Date().toDateString();
+        
+        // Use both activityHistory and todayCompletedActivities for accuracy
+        const todayActivities = this.activityHistory.filter(a => 
+            new Date(a.timestamp).toDateString() === today
+        );
+        const uniqueActivitiesToday = new Set([
+            ...todayActivities.map(a => a.type),
+            ...this.todayCompletedActivities
+        ]).size;
+        
+        if (uniqueActivitiesToday >= 2) {
+            bonuses.combo = true;
+            bonuses.multiplier += 0.5;
+        }
+        
+        // Streak bonus (same activity within 24 hours)
+        const lastActivity = this.lastActivityTime[activityType];
+        if (lastActivity) {
+            const hoursSinceLastActivity = (Date.now() - lastActivity) / (1000 * 60 * 60);
+            if (hoursSinceLastActivity < 24) {
+                bonuses.streak = true;
+                bonuses.multiplier += 0.15;
+            }
+        }
+        
+        return bonuses;
+    }
+
+    updateBonusDisplay(activityType) {
+        const activities = ['Exercise', 'Therapy', 'Nutrition', 'Checkup'];
+        const bonusElement = document.getElementById(`bonus-${activities[activityType].toLowerCase()}`);
+        
+        if (!bonusElement) return;
+        
+        const bonuses = this.calculateBonuses(activityType);
+        const bonusText = bonusElement.querySelector('.bonus-text');
+        
+        bonusElement.className = 'bonus-status';
+        
+        // Get count of today's completed activities
+        const today = new Date().toDateString();
+        const todayActivities = this.activityHistory.filter(a => 
+            new Date(a.timestamp).toDateString() === today
+        );
+        const uniqueToday = new Set([...todayActivities.map(a => a.type), ...this.todayCompletedActivities]).size;
+        
+        if (bonuses.multiplier > 1) {
+            const bonusTypes = [];
+            if (bonuses.timeOfDay) {
+                bonusTypes.push('Time bonus');
+                bonusElement.classList.add('time-bonus');
+            }
+            if (bonuses.streak) {
+                bonusTypes.push('Streak bonus');
+                bonusElement.classList.add('active');
+            }
+            if (bonuses.combo) {
+                bonusTypes.push('Combo bonus');
+                bonusElement.classList.add('combo-bonus');
+            }
+            
+            bonusText.textContent = `${bonusTypes.join(', ')} - ${((bonuses.multiplier - 1) * 100).toFixed(0)}% bonus`;
+        } else if (uniqueToday === 0) {
+            bonusText.textContent = 'No active bonuses';
+        } else if (uniqueToday === 1) {
+            bonusText.textContent = 'Complete 1 more type for combo bonus';
+        } else {
+            bonusText.textContent = 'No active bonuses';
+        }
+    }
+
+    updateAllBonusDisplays() {
+        for (let i = 0; i < 4; i++) {
+            this.updateBonusDisplay(i);
+        }
+    }
+
+    updateDailyEarnings() {
+        // Calculate daily earnings from today's transactions
+        const today = new Date().toDateString();
+        this.dailyEarnings = { 0: 0, 1: 0, 2: 0, 3: 0 };
+        
+        this.transactions.forEach(tx => {
+            if ((tx.type === 'Activity Reward' || tx.type === 'Activity') && 
+                new Date(tx.timestamp).toDateString() === today) {
+                
+                // Parse reward amount and token type
+                const rewardMatch = tx.details.reward?.match(/(\d+\.?\d*)\s+(\w+)/);
+                if (rewardMatch) {
+                    const amount = parseFloat(rewardMatch[1]);
+                    const symbol = rewardMatch[2];
+                    
+                    // Find token type by symbol
+                    for (let i = 0; i < 4; i++) {
+                        if (CONFIG.species[i].symbol === symbol) {
+                            this.dailyEarnings[i] += amount;
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Update display
+        document.getElementById('dailyRHY').textContent = this.dailyEarnings[0].toFixed(0);
+        document.getElementById('dailyHLN').textContent = this.dailyEarnings[1].toFixed(0);
+        document.getElementById('dailyFDN').textContent = this.dailyEarnings[2].toFixed(0);
+        document.getElementById('dailyCTL').textContent = this.dailyEarnings[3].toFixed(0);
+        
+        // Calculate total USDC value
+        const metabolicPrice = parseFloat(document.getElementById('metabolicPrice')?.textContent || '0.0023');
+        let totalUSDC = 0;
+        for (let i = 0; i < 4; i++) {
+            totalUSDC += this.dailyEarnings[i] * metabolicPrice;
+        }
+        document.getElementById('dailyUSDC').textContent = totalUSDC.toFixed(2);
+    }
+
+    loadActivityHistoryFromTransactions() {
+        // Load activity history from existing transactions
+        const today = new Date().toDateString();
+        this.todayCompletedActivities.clear();
+        
+        this.transactions.forEach(tx => {
+            if ((tx.type === 'Activity Reward' || tx.type === 'Activity') && 
+                new Date(tx.timestamp).toDateString() === today) {
+                // Find activity type
+                let actType = -1;
+                for (let i = 0; i < 4; i++) {
+                    if (CONFIG.activities[i].name === tx.details.activity || 
+                        CONFIG.activities[i].name === tx.details.type ||
+                        CONFIG.species[i].name === tx.details.type ||
+                        CONFIG.species[i].symbol === (tx.details.reward?.split(' ')[1] || '')) {
+                        actType = i;
+                        break;
+                    }
+                }
+                
+                if (actType !== -1) {
+                    this.todayCompletedActivities.add(actType);
+                    // Also track in activity history if not already there
+                    if (!this.activityHistory.some(a => a.type === actType && new Date(a.timestamp).toDateString() === today)) {
+                        this.activityHistory.push({
+                            type: actType,
+                            timestamp: tx.timestamp,
+                            duration: parseInt(tx.details.duration) || 30
+                        });
+                        this.lastActivityTime[actType] = new Date(tx.timestamp).getTime();
+                    }
+                }
+            }
+        });
+    }
+
+    async demoFullDay() {
+        if (!this.currentAccount) {
+            if (this.promptWalletCreation()) {
+                setTimeout(() => this.demoFullDay(), 500);
+            }
+            return;
+        }
+        
+        // Show educational modal about the bonus system
+        const confirmDemo = confirm(
+            'The Wellness Synergy Demo will show how completing diverse activities maximizes rewards:\n\n' +
+            '• Exercise (45 min, high intensity): Base reward with potential time bonus\n' +
+            '• Therapy (60 min, moderate): Adds 2x multiplier for activity diversity\n' +
+            '• Nutrition (30 min, moderate): Increases to 3x multiplier\n' +
+            '• Checkup (20 min, light): Achieves maximum 5x multiplier\n\n' +
+            'This demonstrates the protocol\'s incentive for holistic wellness practices.\n\n' +
+            'Continue with demo?'
+        );
+        
+        if (!confirmDemo) return;
+        
+        // Check which activities haven't been completed today
+        const today = new Date().toDateString();
+        const todayActivities = this.activityHistory.filter(a => 
+            new Date(a.timestamp).toDateString() === today
+        );
+        const completedTypes = new Set(todayActivities.map(a => a.type));
+        
+        // Demo shows all 4 activities for educational purposes
+        const demoActivities = [
+            { type: 0, duration: 45, intensity: 80, name: 'Morning Exercise' },
+            { type: 1, duration: 60, intensity: 60, name: 'Therapy Session' },
+            { type: 2, duration: 30, intensity: 70, name: 'Nutrition Planning' },
+            { type: 3, duration: 20, intensity: 50, name: 'Health Checkup' }
+        ];
+        
+        // Filter to only activities not done today
+        const remainingActivities = demoActivities.filter(a => !completedTypes.has(a.type));
+        
+        if (remainingActivities.length === 0) {
+            this.showToast('All 4 activities completed today. Maximum multiplier active.', 'info');
+            return;
+        }
+        
+        this.showToast(`Starting wellness synergy demo with ${remainingActivities.length} activities...`, 'info');
+        
+        // Complete each remaining activity with detailed feedback
+        for (let i = 0; i < remainingActivities.length; i++) {
+            const activity = remainingActivities[i];
+            
+            // Show progress
+            const currentMultiplier = i === 0 ? '1x' : i === 1 ? '2x' : i === 2 ? '3x' : '5x';
+            this.showToast(`Logging ${activity.name} (${activity.duration} min at ${activity.intensity}% intensity)...`, 'info');
+            
+            try {
+                // Track activity
+                this.activityHistory.push({
+                    type: activity.type,
+                    timestamp: Date.now(),
+                    duration: activity.duration
+                });
+                this.lastActivityTime[activity.type] = Date.now();
+                this.todayCompletedActivities.add(activity.type);
+                
+                // Calculate bonuses (will include combo bonus as we progress)
+                const bonuses = this.calculateBonuses(activity.type);
+                
+                // Calculate reward
+                const baseReward = this.calculateActivityReward(activity.type, activity.duration, activity.intensity);
+                const totalReward = baseReward * bonuses.multiplier;
+                
+                // Mint tokens
+                const receipt = await this.contractManager.mintTokens(
+                    this.currentAccount,
+                    activity.type,
+                    totalReward.toString()
+                );
+                
+                // Record transaction
+                this.addTransaction('Activity Reward', {
+                    activity: CONFIG.activities[activity.type].name,
+                    duration: activity.duration + ' min',
+                    intensity: activity.intensity + '%',
+                    reward: totalReward.toFixed(2) + ' ' + CONFIG.species[activity.type].symbol,
+                    bonusMultiplier: bonuses.multiplier,
+                    txHash: receipt.transactionHash
+                });
+                
+                // Show reward with multiplier info
+                const bonusInfo = bonuses.multiplier > 1 ? ` (${bonuses.multiplier.toFixed(1)}x bonus)` : '';
+                this.showToast(
+                    `${activity.name} complete. Earned ${totalReward.toFixed(2)} ${CONFIG.species[activity.type].symbol}${bonusInfo}`,
+                    'success'
+                );
+                
+                // Update bonus display
+                this.updateBonusDisplay(activity.type);
+                
+                // Pause to show progress
+                await new Promise(resolve => setTimeout(resolve, 1500));
+            } catch (error) {
+                console.error(`Failed to log activity ${activity.type}:`, error);
+                this.showToast(`Failed to complete ${activity.name}: ${error.message}`, 'error');
+            }
+        }
+        
+        // Check if all 4 are now complete
+        const finalCompletedTypes = new Set(this.activityHistory
+            .filter(a => new Date(a.timestamp).toDateString() === today)
+            .map(a => a.type));
+        
+        if (finalCompletedTypes.size === 4) {
+            this.showToast('All 4 activity types completed. 5x multiplier achieved.', 'success');
+        } else {
+            const achieved = finalCompletedTypes.size === 3 ? '3x' : finalCompletedTypes.size === 2 ? '2x' : '1.5x';
+            this.showToast(`Completed ${remainingActivities.length} activities. Current multiplier: ${achieved}`, 'success');
+        }
+        
+        await this.updateBalances();
+        this.updateAllBonusDisplays();
+        this.updateDailyEarnings();
     }
     
     selectRecipientWallet(address) {
